@@ -1,0 +1,19 @@
+@startuml
+!include _style.iuml
+|Admin|
+start
+:Klik menu Dataset;
+|Sistem|
+:Baca file perkebunan_bireuen_original.csv;
+:Tampilkan ringkasan, struktur data,\ndan tabel dataset;
+|Admin|
+:Pilih aksi (filter, cari, atau unduh);
+|Sistem|
+if (Aksi yang dipilih?) then (filter / cari)
+  :Tampilkan data sesuai\nkomoditas atau kata kunci;
+else (unduh)
+  :Kirim file perkebunan_bireuen.csv;
+endif
+|Admin|
+stop
+@enduml

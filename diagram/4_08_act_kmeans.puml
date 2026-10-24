@@ -1,0 +1,26 @@
+@startuml
+!include _style.iuml
+|Notebook|
+start
+:Baca DATA DONE.xlsx;
+:Data cleaning\n(gabung tabel, hapus baris total,\nseragamkan nama kecamatan);
+repeat :Ambil data satu komoditas & satu tahun;
+  :Normalisasi Min-Max;
+  :K-Means K = 3;
+  :Beri label Rendah/Sedang/Tinggi\nberdasarkan rata-rata produksi;
+  :Hitung Silhouette Score & DBI;
+  :Buat peta choropleth (PNG);
+repeat while (Masih ada komoditas/tahun?) is (ya) not (tidak)
+:Simpan hasil ke file JSON;
+|Admin|
+:Buka menu Hasil Analisis;
+|Sistem|
+:Muat file JSON hasil notebook;
+:Tampilkan pilihan komoditas & tahun;
+|Admin|
+:Pilih komoditas dan tahun;
+|Sistem|
+:Tampilkan peta, evaluasi, pusat cluster,\ntabel kecamatan, perubahan cluster,\ngrafik tren, dan ringkasan;
+|Admin|
+stop
+@enduml

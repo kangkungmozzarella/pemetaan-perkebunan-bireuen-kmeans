@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pemetaan Geospasial Perkebunan - Kabupaten Bireuen</title>
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo/favicon.png') }}">
+    <style>
+        :root {
+            --green-dark: #1B4332;
+            --green-mid:  #2D6A4F;
+            --green-base: #40916C;
+            --green-pale: #E8F3EC;
+            --ink:        #1A1A2E;
+            --text:       #374151;
+            --muted:      #6B7280;
+            --line:       #E5E7EB;
+            --soft:       #F6F8F7;
+            --c-karet:    #1B4332;
+            --c-kelapa:   #92400E;
+            --c-pinang:   #0F766E;
+            --c-rendah:   #4CAF50;
+            --c-sedang:   #FF9800;
+            --c-tinggi:   #F44336;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: white;
+        }
+
+        a { color: var(--green-mid); }
+        a:hover { color: var(--green-dark); }
+
+        .serif { font-family: 'Playfair Display', serif; }
+
+        /* ── NAV ── */
+        .site-nav {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: white;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .site-nav .navbar { padding: 12px 0; }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--green-dark);
+            text-decoration: none;
+        }
+
+        .site-nav .nav-link {
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: var(--text);
+            padding: 8px 14px !important;
+        }
+
+        .site-nav .nav-link:hover { color: var(--green-dark); }
+
+        .btn-main, .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .btn-main  { background: var(--green-dark); color: white; border: 1px solid var(--green-dark); }
+        .btn-main:hover { background: var(--green-mid); color: white; }
+        .btn-ghost { background: white; color: var(--green-dark); border: 1px solid #D1D5DB; }
+        .btn-ghost:hover { border-color: var(--green-dark); color: var(--green-dark); }
+
+        /* ── HERO ── */
+        .hero { padding: 72px 0 56px; background: var(--soft); border-bottom: 1px solid var(--line); }
+
+        .eyebrow {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--green-mid);
+            margin-bottom: 12px;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.1rem, 4.4vw, 3.2rem);
+            font-weight: 700;
+            line-height: 1.12;
+            color: var(--green-dark);
+            margin-bottom: 18px;
+        }
+
+        .hero .lead {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--text);
+            max-width: 540px;
+            margin-bottom: 28px;
+        }
+
+        .hero-facts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 32px;
+            margin-top: 36px;
+            padding-top: 24px;
+            border-top: 1px solid var(--line);
+        }
+
+        .hero-facts strong {
+            display: block;
+            font-size: 1.5rem;
+            color: var(--green-dark);
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hero-facts span { font-size: 0.84rem; color: var(--muted); }
+
+        .hero-map {
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 14px;
+            margin: 0;
+        }
+
+        .hero-map img { width: 100%; height: auto; display: block; border-radius: 8px; }
+        .hero-map figcaption { font-size: 0.8rem; color: var(--muted); text-align: center; margin-top: 8px; }
+
+        /* ── SECTION ── */
+        .section { padding: 72px 0; }
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.6rem, 3vw, 2.1rem);
+            font-weight: 700;
+            color: var(--green-dark);
+            margin-bottom: 10px;
+        }
+
+        .section-lead { font-size: 1rem; line-height: 1.7; max-width: 640px; margin-bottom: 28px; }
+
+        /* ── PETA EXPLORER ── */
+        .seg {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 4px;
+            background: var(--soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        .seg-btn {
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .seg-btn:hover  { background: white; color: var(--green-dark); }
+        .seg-btn.active { background: var(--green-dark); color: white; }
+        .seg-btn.active .dot { box-shadow: 0 0 0 2px white; }
+        .seg-btn:focus-visible { outline: 2px solid var(--green-base); outline-offset: 2px; }
+        .seg-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
+
+        .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; background: var(--dot); }
+        .dot-karet  { --dot: var(--c-karet); }
+        .dot-kelapa { --dot: var(--c-kelapa); }
+        .dot-pinang { --dot: var(--c-pinang); }
+        .dot-1 { --dot: var(--c-rendah); }
+        .dot-2 { --dot: var(--c-sedang); }
+        .dot-3 { --dot: var(--c-tinggi); }
+
+        .explorer {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+        }
+
+        .explorer-map {
+            position: relative;
+            background: var(--soft);
+            border-right: 1px solid var(--line);
+            min-height: 380px;
+            padding: 16px;
+        }
+
+        .explorer-map img { width: 100%; height: auto; display: block; border-radius: 8px; }
+
+        .map-msg {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .map-msg i { font-size: 2.2rem; color: #9CA3AF; }
+
+        .explorer-side { padding: 24px; }
+        .explorer-side h3 { font-size: 1.1rem; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+        .explorer-side .sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 18px; }
+
+        .counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+
+        .count {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .count strong { display: block; font-size: 1.4rem; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
+        .count span { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text); }
+
+        .kec-head { font-size: 0.85rem; font-weight: 700; color: var(--ink); margin: 14px 0 6px; display: flex; align-items: center; gap: 6px; }
+        .kec-list { display: flex; flex-wrap: wrap; gap: 4px; }
+        .kec-list span { font-size: 0.8rem; background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+
+        .eval-line {
+            display: flex;
+            gap: 18px;
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid var(--line);
+            font-size: 0.84rem;
+            color: var(--muted);
+        }
+
+        .eval-line strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+        /* ── METODE ── */
+        .method { background: var(--soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+
+        .flow { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); counter-reset: step; }
+        .flow li { counter-increment: step; position: relative; padding-right: 20px; }
+        .flow li::after { content: ''; position: absolute; top: 17px; left: 44px; right: 12px; height: 2px; background: var(--line); }
+        .flow li:last-child::after { display: none; }
+
+        .flow-num {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--green-dark);
+            color: white;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .flow-num::before { content: counter(step); }
+        .flow h3 { font-size: 1rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+        .flow p  { font-size: 0.88rem; line-height: 1.6; margin: 0; }
+
+        .var-note {
+            margin-top: 36px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 18px 22px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 32px;
+            font-size: 0.9rem;
+        }
+
+        .var-note strong { color: var(--ink); }
+
+        /* ── FOOTER ── */
+        .site-footer { padding: 28px 0; font-size: 0.86rem; color: var(--muted); }
+
+        @media (max-width: 991px) {
+            .explorer { grid-template-columns: 1fr; }
+            .explorer-map { border-right: none; border-bottom: 1px solid var(--line); min-height: 260px; }
+            .flow { grid-template-columns: repeat(2, 1fr); row-gap: 28px; }
+            .flow li:nth-child(2)::after { display: none; }
+        }
+
+        @media (max-width: 575px) {
+            .hero { padding: 48px 0 40px; }
+            .section { padding: 52px 0; }
+            .flow { grid-template-columns: 1fr; }
+            .flow li::after { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────────── -->
+<header class="site-nav">
+    <nav class="navbar navbar-expand-md container">
+        <a class="brand" href="#beranda">
+            <i class="ph ph-map-trifold"></i>Perkebunan Bireuen
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false"
+                aria-label="Buka menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-md-4 me-auto">
+                <li class="nav-item"><a class="nav-link" href="#peta">Peta cluster</a></li>
+                <li class="nav-item"><a class="nav-link" href="#metode">Metode</a></li>
+            </ul>
+            <a href="{{ url_for('login') }}" class="btn-ghost my-2 my-md-0">
+                <i class="ph ph-sign-in"></i>Masuk admin
+            </a>
+        </div>
+    </nav>
+</header>
+
+<!-- ── HERO ────────────────────────────────────────────────── -->
+<section id="beranda" class="hero">
+    <div class="container">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6">
+                <div class="eyebrow">K-Means Clustering · Kabupaten Bireuen</div>
+                <h1>Pemetaan Geospasial Hasil Perkebunan</h1>
+                <p class="lead">
+                    Pengelompokan {{ total_kecamatan }} kecamatan di Kabupaten Bireuen
+                    ke dalam kategori produksi rendah, sedang, dan tinggi untuk komoditas
+                    karet, kelapa, dan pinang, tahun {{ years[0] }}–{{ years[-1] }}.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="#peta" class="btn-main"><i class="ph ph-map-trifold"></i>Lihat peta cluster</a>
+                    <a href="#metode" class="btn-ghost">Cara kerjanya</a>
+                </div>
+                <div class="hero-facts">
+                    <div><strong>{{ total_kecamatan }}</strong><span>Kecamatan</span></div>
+                    <div><strong>{{ komoditas_list | length }}</strong><span>Komoditas</span></div>
+                    <div><strong>{{ years | length }}</strong><span>Tahun data</span></div>
+                    <div><strong>{{ total_records }}</strong><span>Record</span></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <figure class="hero-map">
+                    <img src="{{ url_for('static', filename='images/maps/peta_dasar.png') }}"
+                         alt="Peta wilayah kecamatan Kabupaten Bireuen">
+                    <figcaption>Wilayah {{ total_kecamatan }} kecamatan Kabupaten Bireuen</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── PETA EXPLORER ───────────────────────────────────────── -->
+<section id="peta" class="section">
+    <div class="container">
+        <h2 class="section-title">Peta cluster per kecamatan</h2>
+        <p class="section-lead">
+            Pilih komoditas dan tahun untuk melihat kecamatan mana yang masuk
+            kategori produksi rendah, sedang, atau tinggi.
+        </p>
+
+        <div class="d-flex flex-wrap gap-3 mb-3">
+            <div>
+                <div class="seg-label">Komoditas</div>
+                <div class="seg" id="komSelector" role="group" aria-label="Pilih komoditas">
+                    {% for k in komoditas_list %}
+                    <button type="button" class="seg-btn {% if loop.first %}active{% endif %}"
+                            data-kom="{{ k }}" onclick="selectKom('{{ k }}')">
+                        <i class="dot dot-{{ k | lower }}"></i>{{ k }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div>
+                <div class="seg-label">Tahun</div>
+                <div class="seg" id="tahunSelector" role="group" aria-label="Pilih tahun">
+                    {% for y in years %}
+                    <button type="button" class="seg-btn {% if loop.last %}active{% endif %}"
+                            data-tahun="{{ y }}" onclick="selectTahun({{ y }})">{{ y }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="explorer">
+            <div class="explorer-map">
+                <div class="map-msg" id="mapMsg"><i class="ph ph-map-trifold"></i><span>Memuat peta…</span></div>
+                <img id="mapImg" src="" alt="Peta cluster kecamatan" style="display:none;">
+            </div>
+            <div class="explorer-side">
+                <h3 id="sideTitle">—</h3>
+                <p class="sub">Jumlah kecamatan pada tiap kategori</p>
+                <div class="counts">
+                    <div class="count"><strong id="n1">—</strong><span><i class="dot dot-1"></i>Rendah</span></div>
+                    <div class="count"><strong id="n2">—</strong><span><i class="dot dot-2"></i>Sedang</span></div>
+                    <div class="count"><strong id="n3">—</strong><span><i class="dot dot-3"></i>Tinggi</span></div>
+                </div>
+                <div id="kecGroups"></div>
+                <div class="eval-line">
+                    <span>Silhouette <strong id="vSil">—</strong></span>
+                    <span>DBI <strong id="vDbi">—</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── METODE ──────────────────────────────────────────────── -->
+<section id="metode" class="section method">
+    <div class="container">
+        <h2 class="section-title">Cara kerjanya</h2>
+        <p class="section-lead">
+            Setiap komoditas dan tahun dikelompokkan secara terpisah, sehingga terdapat
+            {{ komoditas_list | length * years | length }} hasil clustering yang masing-masing memiliki peta sendiri.
+        </p>
+        <ol class="flow">
+            <li>
+                <div class="flow-num"></div>
+                <h3>Data</h3>
+                <p>Produksi dan produktivitas {{ total_kecamatan }} kecamatan, tahun {{ years[0] }}–{{ years[-1] }}.</p>
+            </li>
+            <li>
+                <div class="flow-num"></div>
+                <h3>Normalisasi</h3>
+                <p>Min-Max Scaling agar produksi (ton) dan produktivitas (kg/ha) memiliki skala yang sama.</p>
+            </li>
+            <li>
+                <div class="flow-num"></div>
+                <h3>K-Means, K = 3</h3>
+                <p>Kecamatan dengan karakteristik serupa dikelompokkan, lalu diberi label rendah, sedang, atau tinggi.</p>
+            </li>
+            <li>
+                <div class="flow-num"></div>
+                <h3>Evaluasi dan peta</h3>
+                <p>Kualitas diukur dengan Silhouette Score dan Davies-Bouldin Index, lalu hasilnya dipetakan.</p>
+            </li>
+        </ol>
+        <div class="var-note">
+            <span><strong>Variabel:</strong> Produksi (ton), Produktivitas (kg/ha)</span>
+            <span><strong>Label cluster:</strong> diurutkan dari rata-rata produksi</span>
+            <span><a href="{{ url_for('tentang') }}">Baca detail penelitian <i class="ph ph-arrow-right"></i></a></span>
+        </div>
+    </div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────────── -->
+<footer class="site-footer">
+    <div class="container d-flex flex-wrap justify-content-between gap-2">
+        <span>© {{ current_year }} Pemetaan Geospasial Hasil Perkebunan Kabupaten Bireuen</span>
+        <span>K-Means Clustering · Karet, Kelapa, Pinang</span>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const NAMES = { 1: 'Rendah', 2: 'Sedang', 3: 'Tinggi' };
+    let kom   = {{ komoditas_list[0] | tojson }};
+    let tahun = {{ years[-1] }};
+
+    function selectKom(k) {
+        kom = k;
+        document.querySelectorAll('#komSelector .seg-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.kom === k));
+        load();
+    }
+
+    function selectTahun(y) {
+        tahun = y;
+        document.querySelectorAll('#tahunSelector .seg-btn').forEach(b =>
+            b.classList.toggle('active', parseInt(b.dataset.tahun) === y));
+        load();
+    }
+
+    function mapMessage(icon, text) {
+        const m = document.getElementById('mapMsg');
+        m.style.display = 'flex';
+        m.innerHTML = `<i class="ph ${icon}"></i><span>${text}</span>`;
+    }
+
+    function load() {
+        document.getElementById('sideTitle').textContent = `${kom} · ${tahun}`;
+
+        const img = document.getElementById('mapImg');
+        img.style.display = 'none';
+        mapMessage('ph-map-trifold', 'Memuat peta…');
+        img.onload  = () => { document.getElementById('mapMsg').style.display = 'none'; img.style.display = 'block'; };
+        img.onerror = () => mapMessage('ph-image-broken', 'Peta untuk pilihan ini belum tersedia.');
+        img.src = `/static/images/maps/peta_${kom.toLowerCase()}_${tahun}.png`;
+
+        fetch(`/api/clustering/${kom}/${tahun}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.error) throw new Error(d.error);
+                const kec = d.kecamatan_data || [];
+                [1, 2, 3].forEach(c => {
+                    document.getElementById('n' + c).textContent = kec.filter(k => k.cluster === c).length;
+                });
+                document.getElementById('vSil').textContent = d.silhouette_score;
+                document.getElementById('vDbi').textContent = d.dbi_score;
+                document.getElementById('kecGroups').innerHTML = [3, 2, 1].map(c => {
+                    const a = kec.filter(k => k.cluster === c).sort((x, y) => y.Produksi_Ton - x.Produksi_Ton);
+                    return `<div class="kec-head"><i class="dot dot-${c}"></i>${NAMES[c]}</div>
+                            <div class="kec-list">${a.map(k => `<span>${k.kecamatan}</span>`).join('') || '<span>—</span>'}</div>`;
+                }).join('');
+            })
+            .catch(() => {
+                ['n1', 'n2', 'n3', 'vSil', 'vDbi'].forEach(id => document.getElementById(id).textContent = '—');
+                document.getElementById('kecGroups').innerHTML =
+                    '<p class="sub mb-0">Data clustering belum tersedia.</p>';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', load);
+</script>
+</body>
+</html>

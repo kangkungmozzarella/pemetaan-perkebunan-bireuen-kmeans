@@ -1,0 +1,227 @@
+{% extends "layouts/main_layout.html" %}
+
+{% block title %}Dataset Perkebunan - Pemetaan Geospasial Kabupaten Bireuen{% endblock %}
+{% block topbar_title %}Dataset{% endblock %}
+
+{% block extra_css %}
+<style>
+    .field-list { margin: 0; }
+
+    .field-list div {
+        display: grid;
+        grid-template-columns: 170px 1fr;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.87rem;
+    }
+
+    .field-list div:last-child { border-bottom: none; }
+
+    .field-list dt code {
+        font-size: 0.8rem;
+        color: var(--green-dark);
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        padding: 1px 6px;
+    }
+
+    .field-list dd { margin: 0; color: var(--text); }
+
+    .steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+
+    .steps li {
+        counter-increment: s;
+        display: grid;
+        grid-template-columns: 26px 1fr;
+        gap: 10px;
+        padding: 9px 0;
+        font-size: 0.87rem;
+        line-height: 1.6;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .steps li:last-child { border-bottom: none; }
+
+    .steps li::before {
+        content: counter(s);
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        background: var(--green-pale);
+        color: var(--green-dark);
+        font-size: 0.76rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 767px) {
+        .field-list div { grid-template-columns: 1fr; gap: 2px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set n_kec = datasets | map(attribute='Kecamatan') | unique | list | length %}
+<div class="row g-4">
+
+    <!-- ── HEADER ───────────────────────────────────────── -->
+    <div class="col-12">
+        <div class="page-head">
+            <div>
+                <div class="page-eyebrow">Dataset</div>
+                <h1 class="page-title">Data Perkebunan Kabupaten Bireuen</h1>
+                <p class="page-desc">
+                    Produksi dan produktivitas karet, kelapa, dan pinang per kecamatan,
+                    periode {{ years[0] }}–{{ years[-1] }}. Data ini yang dipakai sebagai
+                    masukan K-Means Clustering.
+                </p>
+            </div>
+            {% if datasets %}
+            <a href="{{ url_for('dataset_download') }}" class="btn-green">
+                <i class="ph ph-download-simple"></i>Download CSV
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── ANGKA KUNCI ──────────────────────────────────── -->
+    <div class="col-12">
+        <div class="facts" style="--facts:4;">
+            <div class="fact">
+                <span class="fact-val">{{ datasets | length }}</span>
+                <span class="fact-lbl">Record data</span>
+            </div>
+            <div class="fact">
+                <span class="fact-val">{{ n_kec }}</span>
+                <span class="fact-lbl">Kecamatan</span>
+            </div>
+            <div class="fact">
+                <span class="fact-val">{{ komoditas_list | length }}</span>
+                <span class="fact-lbl">Komoditas</span>
+            </div>
+            <div class="fact">
+                <span class="fact-val">{{ years | length }}</span>
+                <span class="fact-lbl">Tahun ({{ years[0] }}–{{ years[-1] }})</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── STRUKTUR + SUMBER ────────────────────────────── -->
+    <div class="col-lg-7">
+        <section class="panel h-100">
+            <h2 class="panel-title mb-3">Struktur data</h2>
+            <dl class="field-list">
+                <div><dt><code>Komoditas</code></dt><dd>Karet, Kelapa, atau Pinang</dd></div>
+                <div><dt><code>Tahun</code></dt><dd>Tahun pencatatan, {{ years[0] }}–{{ years[-1] }}</dd></div>
+                <div><dt><code>Kecamatan</code></dt><dd>Nama kecamatan di Kabupaten Bireuen</dd></div>
+                <div><dt><code>Produksi_Ton</code></dt><dd>Jumlah produksi dalam setahun (ton). <strong>Variabel clustering.</strong></dd></div>
+                <div><dt><code>Produktivitas_KgHa</code></dt><dd>Hasil per hektar (kg/ha). <strong>Variabel clustering.</strong></dd></div>
+            </dl>
+        </section>
+    </div>
+
+    <div class="col-lg-5">
+        <section class="panel h-100">
+            <h2 class="panel-title">Sumber dan pembersihan data</h2>
+            <p class="panel-sub mb-3">Sumber: <code>DATA DONE.xlsx</code></p>
+            <ol class="steps">
+                <li>Tabel per komoditas dan per tahun digabung menjadi satu tabel.</li>
+                <li>Baris total di bawah setiap tabel dihapus.</li>
+                <li>Penulisan nama kecamatan diseragamkan agar cocok dengan shapefile.</li>
+                <li>Nilai produktivitas yang tersimpan sebagai teks diubah menjadi angka.</li>
+            </ol>
+        </section>
+    </div>
+
+    <!-- ── TABEL ────────────────────────────────────────── -->
+    <div class="col-12">
+        <section class="panel data-table-card">
+            <div class="panel-head">
+                <h2 class="panel-title">Data per kecamatan</h2>
+                <div class="seg" id="komFilter" role="group" aria-label="Filter komoditas">
+                    <button type="button" class="seg-btn active" data-kom="all"
+                            onclick="filterTable('all')">Semua</button>
+                    {% for k in komoditas_list %}
+                    <button type="button" class="seg-btn" data-kom="{{ k }}"
+                            onclick="filterTable('{{ k }}')">
+                        <i class="dot dot-{{ k | lower }}"></i>{{ k }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="datasetTable" class="table data-table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Komoditas</th>
+                            <th>Tahun</th>
+                            <th>Kecamatan</th>
+                            <th>Produksi (Ton)</th>
+                            <th>Produktivitas (Kg/Ha)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in datasets %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><span class="k-badge k-{{ row.Komoditas | lower }}">{{ row.Komoditas }}</span></td>
+                            <td><strong>{{ row.Tahun }}</strong></td>
+                            <td style="font-weight:500;">{{ row.Kecamatan }}</td>
+                            <td data-order="{{ row.Produksi_Ton }}">
+                                <strong style="color:var(--green-dark);">{{ row.Produksi_Ton | angka }}</strong>
+                            </td>
+                            <td data-order="{{ row.Produktivitas_KgHa }}">{{ row.Produktivitas_KgHa | angka }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if not datasets %}
+            <div class="status-alert status-warning mt-3">
+                <i class="ph ph-warning" style="flex-shrink:0;"></i>
+                <span>Dataset belum tersedia. Jalankan notebook <code>kmeans.ipynb</code>
+                untuk membuat file <code>perkebunan_bireuen_original.csv</code>.</span>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+    var table = $('#datasetTable').DataTable({
+        pageLength: 25,
+        autoWidth: false,
+        order: [[2, 'asc'], [1, 'asc']],
+        language: {
+            search      : 'Cari:',
+            lengthMenu  : 'Tampilkan _MENU_ data',
+            info        : 'Menampilkan _START_ – _END_ dari _TOTAL_ data',
+            infoEmpty   : 'Menampilkan 0 – 0 dari 0 data',
+            infoFiltered: '(difilter dari _MAX_ data)',
+            zeroRecords : 'Tidak ada data yang cocok',
+            emptyTable  : 'Belum ada data',
+            paginate: {
+                first: '«', last: '»', next: '›', previous: '‹'
+            }
+        }
+    });
+
+    window.filterTable = function (komoditas) {
+        document.querySelectorAll('#komFilter .seg-btn').forEach(function (b) {
+            b.classList.toggle('active', b.dataset.kom === komoditas);
+        });
+        table.column(1).search(komoditas === 'all' ? '' : komoditas).draw();
+    };
+});
+</script>
+{% endblock %}

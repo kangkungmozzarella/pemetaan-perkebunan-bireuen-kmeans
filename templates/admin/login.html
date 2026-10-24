@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pemetaan Geospasial Perkebunan Kabupaten Bireuen</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo/favicon.png') }}">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green-dark: #1B4332;
+            --green-mid:  #2D6A4F;
+            --green-base: #40916C;
+            --green-pale: #E8F3EC;
+            --ink:        #1A1A2E;
+            --text:       #374151;
+            --muted:      #6B7280;
+            --line:       #E5E7EB;
+            --soft:       #F6F8F7;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--soft);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+
+        .login-shell {
+            width: 100%;
+            max-width: 960px;
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        /* ── Kolom kiri ── */
+        .login-aside {
+            background: var(--green-dark);
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: white;
+            text-decoration: none;
+        }
+
+        .login-aside h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.9rem;
+            line-height: 1.25;
+            font-weight: 700;
+        }
+
+        .login-aside p { font-size: 0.92rem; line-height: 1.7; color: rgba(255,255,255,0.8); }
+
+        .aside-map {
+            margin-top: auto;
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .aside-map img { width: 100%; height: auto; display: block; border-radius: 6px; }
+
+        .aside-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.75);
+        }
+
+        .aside-meta span { display: inline-flex; align-items: center; gap: 6px; }
+
+        /* ── Kolom kanan ── */
+        .login-main {
+            padding: 48px 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-main h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 6px;
+        }
+
+        .login-main .lead { font-size: 0.9rem; color: var(--muted); margin-bottom: 28px; }
+
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        .alert-danger  { background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; }
+        .alert-success { background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; }
+        .alert-warning { background:#FFFBEB; color:#B45309; border:1px solid #FDE68A; }
+        .alert-info    { background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE; }
+
+        .field { margin-bottom: 18px; }
+
+        .field label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.86rem;
+            color: var(--ink);
+            margin-bottom: 7px;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap .icon-left {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+            font-size: 1.1rem;
+            pointer-events: none;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 12px 44px 12px 40px;
+            border: 1px solid #D1D5DB;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.93rem;
+            color: var(--ink);
+            background: white;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .field input:focus {
+            border-color: var(--green-base);
+            box-shadow: 0 0 0 3px rgba(64,145,108,0.18);
+        }
+
+        .input-wrap:focus-within .icon-left { color: var(--green-base); }
+
+        .toggle-pass {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 34px; height: 34px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-pass:hover { background: var(--soft); color: var(--green-dark); }
+        .toggle-pass:focus-visible { outline: 2px solid var(--green-base); }
+
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            margin-top: 6px;
+            background: var(--green-dark);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.15s ease;
+        }
+
+        .btn-login:hover { background: var(--green-mid); }
+        .btn-login:focus-visible { outline: 2px solid var(--green-base); outline-offset: 2px; }
+        .btn-login.loading { pointer-events: none; opacity: 0.8; }
+
+        .btn-spinner {
+            display: none;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 22px;
+            font-size: 0.86rem;
+            color: var(--green-mid);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover { color: var(--green-dark); text-decoration: underline; }
+
+        @media (max-width: 820px) {
+            .login-shell { grid-template-columns: 1fr; max-width: 440px; }
+            .login-aside { display: none; }
+            .login-main { padding: 36px 24px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="login-shell">
+
+        <aside class="login-aside">
+            <a href="{{ url_for('homepage') }}" class="brand">
+                <i class="ph ph-map-trifold"></i>Perkebunan Bireuen
+            </a>
+            <div>
+                <h1>Pemetaan Geospasial Hasil Perkebunan</h1>
+                <p class="mt-2" style="margin-top:10px;">
+                    Pengelompokan kecamatan di Kabupaten Bireuen berdasarkan
+                    produksi dan produktivitas karet, kelapa, dan pinang
+                    menggunakan K-Means Clustering.
+                </p>
+            </div>
+            <div class="aside-meta">
+                <span><i class="ph ph-map-pin"></i>17 kecamatan</span>
+                <span><i class="ph ph-calendar-blank"></i>2020 – 2024</span>
+                <span><i class="ph ph-circles-three"></i>K = 3</span>
+            </div>
+            <figure class="aside-map">
+                <img src="{{ url_for('static', filename='images/maps/peta_dasar.png') }}"
+                     alt="Peta wilayah kecamatan Kabupaten Bireuen">
+            </figure>
+        </aside>
+
+        <section class="login-main">
+            <h2>Masuk sebagai admin</h2>
+            <p class="lead">Gunakan akun admin untuk membuka dashboard dan hasil analisis.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    <i class="ph ph-{% if category == 'danger' %}warning-circle{% elif category == 'success' %}check-circle{% elif category == 'warning' %}warning{% else %}info{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endwith %}
+
+            <form action="{{ url_for('login') }}" method="POST" id="loginForm">
+                <div class="field">
+                    <label for="username">Username</label>
+                    <div class="input-wrap">
+                        <i class="ph ph-user icon-left"></i>
+                        <input type="text" id="username" name="username"
+                               placeholder="Username" required autocomplete="username" autofocus>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <i class="ph ph-lock icon-left"></i>
+                        <input type="password" id="password" name="password"
+                               placeholder="Password" required autocomplete="current-password">
+                        <button type="button" class="toggle-pass" id="togglePass"
+                                aria-label="Tampilkan password" aria-pressed="false">
+                            <i class="ph ph-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <span id="btnText">Masuk</span>
+                    <span class="btn-spinner" id="btnSpinner" aria-hidden="true"></span>
+                </button>
+            </form>
+
+            <a href="{{ url_for('homepage') }}" class="back-link">
+                <i class="ph ph-arrow-left"></i>Kembali ke beranda
+            </a>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggle = document.getElementById('togglePass');
+            const pass   = document.getElementById('password');
+
+            toggle.addEventListener('click', function () {
+                const show = pass.type === 'password';
+                pass.type = show ? 'text' : 'password';
+                toggle.setAttribute('aria-pressed', show);
+                toggle.setAttribute('aria-label', show ? 'Sembunyikan password' : 'Tampilkan password');
+                toggle.innerHTML = '<i class="ph ' + (show ? 'ph-eye-slash' : 'ph-eye') + '"></i>';
+            });
+
+            document.getElementById('loginForm').addEventListener('submit', function () {
+                document.getElementById('loginBtn').classList.add('loading');
+                document.getElementById('btnText').textContent = 'Memeriksa…';
+                document.getElementById('btnSpinner').style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

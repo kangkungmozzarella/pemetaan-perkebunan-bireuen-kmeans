@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pemetaan Geospasial Perkebunan - Kabupaten Bireuen{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo/favicon.png') }}">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <!-- CSS lainnya -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/file-upload.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/plyr.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/full-calendar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/editor-quill.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/apexcharts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-jvectormap-2.0.5.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+
+    <style>
+        :root {
+            --green-dark:   #1B4332;
+            --green-mid:    #2D6A4F;
+            --green-base:   #40916C;
+            --green-light:  #74C69D;
+            --green-pale:   #D8F3DC;
+            --amber:        #F4A261;
+            --amber-dark:   #E76F51;
+            --ink:          #1A1A2E;
+            --text:         #374151;
+            --muted:        #6B7280;
+            --line:         #E5E7EB;
+            --surface:      #FFFFFF;
+            --soft:         #F6F8F7;
+            --c-karet:      #1B4332;
+            --c-kelapa:     #92400E;
+            --c-pinang:     #0F766E;
+            --cluster-rendah: #4CAF50;
+            --cluster-sedang: #FF9800;
+            --cluster-tinggi: #F44336;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* ── SIDEBAR ─────────────────────────────────────── */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--line);
+        }
+
+        .sidebar__logo { border-bottom: 1px solid var(--line); }
+
+        .sidebar__logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--green-dark);
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar-menu-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--muted);
+            padding: 14px 12px 6px;
+            margin-top: 8px;
+        }
+
+        .sidebar-menu__link {
+            color: var(--text);
+            border-radius: 10px;
+            margin: 2px 0;
+            padding: 10px 14px;
+            transition: background 0.15s ease, color 0.15s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .sidebar-menu__link:hover {
+            background: var(--soft);
+            color: var(--green-dark);
+        }
+
+        .sidebar-menu__link.active,
+        .sidebar-menu__link.active:hover {
+            background: var(--green-dark);
+            color: white;
+        }
+
+        .sidebar-menu__link.link-logout       { color: #B91C1C; }
+        .sidebar-menu__link.link-logout:hover { background: #FEF2F2; color: #991B1B; }
+
+        .sidebar-menu__link .icon {
+            width: 22px;
+            text-align: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-komoditas {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 10px 14px 12px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .sidebar-komoditas span { display: inline-flex; align-items: center; gap: 5px; }
+
+        .sidebar-info-box {
+            margin: 16px 12px 0;
+            border-top: 1px solid var(--line);
+            padding: 14px 2px 0;
+        }
+
+        .sidebar-info-box .si-title {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-info-box .si-item div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text);
+            line-height: 1.9;
+        }
+
+        .sidebar-info-box .si-item i { color: var(--green-mid); }
+
+        /* ── TOP NAVBAR ──────────────────────────────────── */
+        .top-navbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .topbar-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .user-initial {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--green-dark);
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-initial.lg { width: 44px; height: 44px; font-size: 1rem; }
+
+        /* ── DASHBOARD BODY ──────────────────────────────── */
+        .dashboard-body {
+            background: var(--soft);
+            min-height: calc(100vh - 140px);
+        }
+
+        /* ── CARDS ───────────────────────────────────────── */
+        .card {
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            box-shadow: none;
+        }
+
+        /* ── KOMPONEN BERSAMA ────────────────────────────── */
+        .page-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 4px;
+        }
+
+        .page-eyebrow {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--green-mid);
+            margin-bottom: 6px;
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.5rem, 2.4vw, 1.9rem);
+            font-weight: 700;
+            color: var(--green-dark);
+            margin: 0 0 6px;
+            line-height: 1.25;
+        }
+
+        .page-desc {
+            font-size: 0.92rem;
+            color: var(--text);
+            margin: 0;
+            max-width: 720px;
+            line-height: 1.65;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .panel-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--green-dark);
+            margin: 0;
+        }
+
+        .panel-sub { font-size: 0.82rem; color: var(--muted); margin: 2px 0 0; }
+
+        .facts {
+            display: grid;
+            grid-template-columns: repeat(var(--facts, 4), 1fr);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 20px 0;
+        }
+
+        .fact { padding: 0 24px; border-left: 1px solid var(--line); min-width: 0; }
+        .fact:first-child { border-left: none; }
+
+        .fact-val {
+            display: block;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--green-dark);
+            line-height: 1.15;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .fact-lbl  { display: block; font-size: 0.82rem; color: var(--text); margin-top: 2px; }
+        .fact-note { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+        /* Tombol pilihan (komoditas / tahun / tab) */
+        .seg {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 4px;
+            background: var(--soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        .seg-btn {
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 0.84rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 7px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .seg-btn:hover  { background: white; color: var(--green-dark); }
+        .seg-btn.active { background: var(--green-dark); color: white; }
+        .seg-btn.active .dot { box-shadow: 0 0 0 2px white; }
+        .seg-btn:focus-visible { outline: 2px solid var(--green-base); outline-offset: 2px; }
+
+        .seg-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; }
+
+        .dot {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            background: var(--dot, var(--muted));
+        }
+
+        .dot-karet  { --dot: var(--c-karet); }
+        .dot-kelapa { --dot: var(--c-kelapa); }
+        .dot-pinang { --dot: var(--c-pinang); }
+        .dot-rendah { --dot: var(--cluster-rendah); }
+        .dot-sedang { --dot: var(--cluster-sedang); }
+        .dot-tinggi { --dot: var(--cluster-tinggi); }
+
+        .btn-green {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--green-dark);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .btn-green:hover { background: var(--green-mid); color: white; }
+        .btn-green:focus-visible { outline: 2px solid var(--green-base); outline-offset: 2px; }
+
+        .dashboard-body code {
+            color: var(--green-dark);
+            background: var(--soft);
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            padding: 1px 5px;
+            font-size: 0.85em;
+        }
+
+        .note {
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.6;
+            margin: 12px 0 0;
+        }
+
+        @media (max-width: 767px) {
+            .panel { padding: 18px; }
+            .facts { grid-template-columns: repeat(2, 1fr); row-gap: 18px; padding: 18px 0; }
+            .fact { border-left: none; padding: 0 18px; }
+        }
+
+        /* ── CLUSTER BADGES ──────────────────────────────── */
+        .cluster-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .badge-rendah {
+            background: rgba(76,175,80,0.12);
+            color: #14532D;
+            border: 1px solid rgba(76,175,80,0.3);
+        }
+
+        .badge-sedang {
+            background: rgba(255,152,0,0.12);
+            color: #92400E;
+            border: 1px solid rgba(255,152,0,0.3);
+        }
+
+        .badge-tinggi {
+            background: rgba(244,67,54,0.1);
+            color: #7F1D1D;
+            border: 1px solid rgba(244,67,54,0.25);
+        }
+
+        /* ── KOMODITAS BADGES ────────────────────────────── */
+        .k-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--ink);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            white-space: nowrap;
+        }
+
+        .k-badge::before {
+            content: '';
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--kc, var(--muted));
+        }
+
+        .k-karet  { --kc: var(--c-karet); }
+        .k-kelapa { --kc: var(--c-kelapa); }
+        .k-pinang { --kc: var(--c-pinang); }
+
+        /* ── EVALUASI BADGES ─────────────────────────────── */
+        .eval-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+
+        .eval-baik       { background:#D1FAE5; color:#065F46; }
+        .eval-cukup      { background:#DBEAFE; color:#1E40AF; }
+        .eval-perhatian  { background:#FEF3C7; color:#92400E; }
+        .eval-buruk      { background:#FEE2E2; color:#991B1B; }
+
+        /* ── TABLE ───────────────────────────────────────── */
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+            color: white;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 14px 12px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table tbody td {
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.88rem;
+            padding: 12px;
+            border-color: #F3F4F6;
+        }
+
+        .table tbody tr:hover { background: rgba(27,67,50,0.04); }
+
+        /* ── DATA TABLE (DataTables 2) ─────────────────────
+           Pakai: wrapper .data-table-card + <table class="table data-table">.
+           Semua isi & header rata tengah. */
+        table.data-table {
+            /* main.css memaksa table.dataTable min-width 1199px */
+            min-width: 720px !important;
+            width: 100% !important;
+            margin: 0 !important;
+            border-collapse: separate !important;
+            border-spacing: 0;
+            border: 1px solid #D1D5DB;
+            border-radius: 12px;
+            overflow: hidden;
+            font-variant-numeric: tabular-nums;
+        }
+
+        table.data-table thead th,
+        table.data-table tbody td {
+            text-align: center !important;
+            vertical-align: middle;
+        }
+
+        table.data-table thead th {
+            background: var(--green-dark);
+            color: white;
+            font-weight: 600;
+            font-size: 0.84rem;
+            padding: 12px 30px !important;
+            white-space: nowrap;
+            border: none !important;
+            border-right: 1px solid rgba(255,255,255,0.18) !important;
+        }
+
+        table.data-table tbody td {
+            font-size: 0.87rem;
+            padding: 9px 14px !important;
+            border: none !important;
+            border-right: 1px solid #E5E7EB !important;
+            border-bottom: 1px solid #E5E7EB !important;
+            color: #1A1A2E;
+        }
+
+        table.data-table thead th:last-child,
+        table.data-table tbody td:last-child  { border-right: none !important; }
+        table.data-table tbody tr:last-child td { border-bottom: none !important; }
+
+        table.data-table tbody tr:nth-child(even) td { background: #F9FAFB; }
+        table.data-table tbody tr:hover td           { background: #ECFDF3; }
+
+        table.data-table thead span.dt-column-order:before,
+        table.data-table thead span.dt-column-order:after {
+            color: rgba(255,255,255,0.75) !important;
+        }
+
+        .data-table-card .dt-layout-cell.dt-start,
+        .data-table-card .dt-layout-cell.dt-end {
+            padding: 0 0 14px !important;
+        }
+
+        .data-table-card .dt-layout-row:last-child .dt-layout-cell {
+            padding: 14px 0 0 !important;
+        }
+
+        .data-table-card .dt-info {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .data-table-card .dt-search input,
+        .data-table-card .dt-length select {
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .data-table-card .dt-search input:focus,
+        .data-table-card .dt-length select:focus {
+            border-color: var(--green-base);
+        }
+
+        .data-table-card .dt-length label,
+        .data-table-card .dt-search label {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin: 0 6px;
+        }
+
+        .data-table-card .dt-paging nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+
+        .data-table-card div.dt-container .dt-paging .dt-paging-button {
+            width: auto !important;
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px !important;
+            margin: 0 !important;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #374151 !important;
+            background: white !important;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 8px !important;
+        }
+
+        .data-table-card div.dt-container .dt-paging .dt-paging-button:hover:not(.disabled):not(.current) {
+            color: var(--green-dark) !important;
+            border-color: var(--green-base) !important;
+            background: #F0FDF4 !important;
+        }
+
+        .data-table-card div.dt-container .dt-paging .dt-paging-button.current,
+        .data-table-card div.dt-container .dt-paging .dt-paging-button.current:hover {
+            color: white !important;
+            background: var(--green-dark) !important;
+            border-color: var(--green-dark) !important;
+        }
+
+        .data-table-card div.dt-container .dt-paging .dt-paging-button.disabled {
+            opacity: 0.4;
+        }
+
+        .data-table-card .dt-paging .ellipsis {
+            display: inline-flex;
+            align-items: flex-end;
+            padding: 0 4px;
+            color: var(--muted);
+        }
+
+        /* ── BUTTONS ─────────────────────────────────────── */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: background 0.15s ease;
+        }
+
+        .btn-primary:hover { background: var(--green-mid); }
+
+        /* ── DROPDOWN ────────────────────────────────────── */
+        .dropdown-menu {
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            box-shadow: 0 8px 24px rgba(17,24,39,0.08);
+        }
+
+        /* ── STATUS ALERTS ───────────────────────────────── */
+        .status-alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-ready   { background:#D1FAE5; color:#065F46; border:1px solid #A7F3D0; }
+        .status-warning { background:#FEF3C7; color:#92400E; border:1px solid #FDE68A; }
+        .status-error   { background:#FEE2E2; color:#991B1B; border:1px solid #FECACA; }
+
+        /* ── FOOTER ──────────────────────────────────────── */
+        .dashboard-footer {
+            border-top: 1px solid var(--line);
+            background: white;
+        }
+
+        /* ── ANIMASI ─────────────────────────────────────── */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity:0; }
+            to   { opacity:1; }
+        }
+
+        @keyframes spin {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-spinner {
+            border: 3px solid #D1FAE5;
+            border-top: 3px solid var(--green-base);
+            border-radius: 50%;
+            width: 28px; height: 28px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        /* ── RESPONSIVE ──────────────────────────────────── */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar.show { transform: translateX(0); }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="side-overlay"></div>
+
+    <!-- ── SIDEBAR ──────────────────────────────────────── -->
+    <aside class="sidebar">
+        <button type="button"
+            class="sidebar-close-btn text-gray-500 hover-text-white hover-bg-main-600 text-md w-24 h-24 border border-gray-100 hover-border-main-600 d-xl-none d-flex flex-center rounded-circle position-absolute">
+            <i class="ph ph-x"></i>
+        </button>
+
+        <!-- Logo -->
+        <a href="{{ url_for('dashboard') }}"
+           class="sidebar__logo text-center p-20 position-sticky inset-block-start-0 bg-white w-100 z-1 pb-10 d-block text-decoration-none">
+            <h1 class="text-xl fw-bold mb-0">
+                <i class="ph ph-map-trifold me-2"></i>Perkebunan Bireuen
+            </h1>
+            <div style="font-size:0.7rem;color:var(--muted);margin-top:4px;font-weight:500;">
+                K-Means Clustering
+            </div>
+        </a>
+
+        <!-- Komoditas chips -->
+        <div class="sidebar-komoditas">
+            {% for k in komoditas_list %}
+            <span><i class="dot dot-{{ k | lower }}"></i>{{ k }}</span>
+            {% endfor %}
+        </div>
+
+        <!-- Menu -->
+        <div class="sidebar-menu-wrapper overflow-y-auto scroll-sm">
+            <div class="p-20 pt-0">
+
+                <div class="sidebar-menu-label">Menu Utama</div>
+                <ul class="sidebar-menu" style="list-style:none;padding:0;margin:0;">
+                    <li class="sidebar-menu__item">
+                        <a href="{{ url_for('dashboard') }}"
+                           class="sidebar-menu__link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                            <span class="icon"><i class="ph ph-squares-four"></i></span>
+                            <span class="text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-menu__item">
+                        <a href="{{ url_for('dataset') }}"
+                           class="sidebar-menu__link {% if request.endpoint == 'dataset' %}active{% endif %}">
+                            <span class="icon"><i class="ph ph-table"></i></span>
+                            <span class="text">Dataset</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-menu__item">
+                        <a href="{{ url_for('hasil_analisis') }}"
+                           class="sidebar-menu__link {% if request.endpoint == 'hasil_analisis' %}active{% endif %}">
+                            <span class="icon"><i class="ph ph-chart-scatter"></i></span>
+                            <span class="text">Hasil Analisis</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-menu__item">
+                        <a href="{{ url_for('tentang') }}"
+                           class="sidebar-menu__link {% if request.endpoint == 'tentang' %}active{% endif %}">
+                            <span class="icon"><i class="ph ph-book-open"></i></span>
+                            <span class="text">Tentang</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="sidebar-menu-label">Akun</div>
+                <ul class="sidebar-menu" style="list-style:none;padding:0;margin:0;">
+                    <li class="sidebar-menu__item">
+                        <a href="{{ url_for('users') }}"
+                           class="sidebar-menu__link {% if request.endpoint == 'users' %}active{% endif %}">
+                            <span class="icon"><i class="ph ph-users"></i></span>
+                            <span class="text">Manajemen User</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-menu__item">
+                        <a href="{{ url_for('logout') }}" class="sidebar-menu__link link-logout">
+                            <span class="icon"><i class="ph ph-sign-out"></i></span>
+                            <span class="text">Logout</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Info box -->
+                <div class="sidebar-info-box">
+                    <div class="si-title">Info Penelitian</div>
+                    <div class="si-item">
+                        <div><i class="ph ph-calendar-blank"></i>Data {{ years[0] }} – {{ years[-1] }}</div>
+                        <div><i class="ph ph-map-pin"></i>17 kecamatan</div>
+                        <div><i class="ph ph-database"></i>255 record</div>
+                        <div><i class="ph ph-circles-three"></i>K = 3 cluster</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── MAIN WRAPPER ─────────────────────────────────── -->
+    <div class="dashboard-main-wrapper">
+
+        <!-- ── TOP NAVBAR ─────────────────────────────── -->
+        <div class="top-navbar flex-between gap-16">
+            <div class="flex-align gap-16">
+                <button type="button"
+                        class="toggle-btn d-xl-none d-flex text-26 text-gray-500">
+                    <i class="ph ph-list"></i>
+                </button>
+                <span class="topbar-title">{% block topbar_title %}{{ app_name }}{% endblock %}</span>
+            </div>
+
+            <div class="flex-align gap-16">
+                <!-- User dropdown -->
+                <div class="dropdown">
+                    <button class="users arrow-down-icon border border-gray-200
+                                   rounded-pill p-4 d-inline-block pe-40 position-relative"
+                            type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="user-initial">{{ current_user[0] | upper }}</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu--lg border-0 bg-transparent p-0">
+                        <div class="card border border-gray-100 rounded-12 box-shadow-custom">
+                            <div class="card-body">
+                                <div class="flex-align gap-8 mb-16 pb-16"
+                                     style="border-bottom:1px solid #F3F4F6;">
+                                    <span class="user-initial lg">{{ current_user[0] | upper }}</span>
+                                    <div>
+                                        <h5 class="mb-0" style="color:var(--green-dark);font-weight:700;">
+                                            {{ session.get('username', 'User') }}
+                                        </h5>
+                                        <p style="font-size:0.78rem;color:var(--muted);margin:0;">
+                                            Administrator
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <a href="{{ url_for('logout') }}"
+                                   style="display:flex;align-items:center;gap:8px;padding:10px 12px;
+                                          border-radius:10px;color:#DC2626;font-weight:600;
+                                          font-size:0.88rem;text-decoration:none;
+                                          transition:background 0.2s;"
+                                   onmouseover="this.style.background='#FEE2E2'"
+                                   onmouseout="this.style.background='transparent'">
+                                    <i class="ph ph-sign-out" style="font-size:1.1rem;"></i>
+                                    Log Out
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── CONTENT AREA ────────────────────────────── -->
+        <div class="dashboard-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div style="padding:16px 20px 0;">
+                    {% for category, message in messages %}
+                    <div class="status-alert status-{{ 'ready' if category == 'success' else 'warning' if category == 'warning' else 'error' if category == 'danger' else 'ready' }} mb-2"
+                         id="flashMsg{{ loop.index }}">
+                        <i class="ph ph-{% if category == 'success' %}check-circle{% elif category == 'warning' %}warning{% elif category == 'danger' %}warning-circle{% else %}info{% endif %}"></i>
+                        {{ message }}
+                        <button onclick="document.getElementById('flashMsg{{ loop.index }}').remove()"
+                                style="margin-left:auto;background:none;border:none;
+                                       cursor:pointer;font-size:1rem;opacity:0.6;">✕</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- ── FOOTER ──────────────────────────────────── -->
+        <div class="dashboard-footer">
+            <div class="flex-between flex-wrap gap-16 p-20">
+                <p style="font-size:0.8rem;color:var(--muted);margin:0;">
+                    © {{ current_year }} Pemetaan Geospasial Perkebunan Kabupaten Bireuen
+                </p>
+                <div class="flex-align gap-12" style="font-size:0.78rem;color:var(--muted);">
+                    <span>K-Means Clustering</span>
+                    <span>•</span>
+                    <span>Silhouette Score</span>
+                    <span>•</span>
+                    <span>Davies-Bouldin Index</span>
+                    <span>•</span>
+                    <span>Shapefile Bireuen</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── SCRIPTS ──────────────────────────────────────── -->
+    <script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/boostrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/phosphor-icon.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/file-upload.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/plyr.js') }}"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+    <script src="{{ url_for('static', filename='js/full-calendar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/editor-quill.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/apexcharts.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-jvectormap-2.0.5.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-jvectormap-world-mill-en.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Fade-in content
+            const body = document.querySelector('.dashboard-body');
+            if (body) body.classList.add('fade-in');
+
+            // Auto-hide flash messages
+            document.querySelectorAll('[id^="flashMsg"]').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.transition = 'opacity 0.5s';
+                    el.style.opacity = '0';
+                    setTimeout(function () { el.remove(); }, 500);
+                }, 5000);
+            });
+        });
+
+        // ── Helper functions ─────────────────────────────
+        function showLoading(element) {
+            element.innerHTML = '<div class="loading-spinner"></div>';
+        }
+
+        function getClusterColor(cluster) {
+            if (cluster === 1 || cluster === 'Rendah')
+                return 'var(--cluster-rendah)';
+            if (cluster === 2 || cluster === 'Sedang')
+                return 'var(--cluster-sedang)';
+            if (cluster === 3 || cluster === 'Tinggi')
+                return 'var(--cluster-tinggi)';
+            return '#6c757d';
+        }
+
+        function getDbiKualitas(dbi) {
+            if (dbi <= 0.5) return { label: 'Sangat Baik', cls: 'eval-baik' };
+            if (dbi <= 1.0) return { label: 'Baik',        cls: 'eval-cukup' };
+            if (dbi <= 1.5) return { label: 'Cukup',       cls: 'eval-perhatian' };
+            return { label: 'Perlu Perbaikan', cls: 'eval-buruk' };
+        }
+
+        function getSilKualitas(sil) {
+            if (sil >= 0.7) return { label: 'Sangat Baik', cls: 'eval-baik' };
+            if (sil >= 0.5) return { label: 'Baik',        cls: 'eval-cukup' };
+            if (sil >= 0.25)return { label: 'Cukup',       cls: 'eval-perhatian' };
+            return { label: 'Lemah', cls: 'eval-buruk' };
+        }
+
+        function getKomoditasDot(komoditas) {
+            return '<i class="dot dot-' + String(komoditas).toLowerCase() + '"></i>';
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

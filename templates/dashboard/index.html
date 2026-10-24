@@ -1,0 +1,436 @@
+{% extends "layouts/main_layout.html" %}
+
+{% block title %}Dashboard - Pemetaan Geospasial Perkebunan Kabupaten Bireuen{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+.peta-box {
+    position: relative;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 360px;
+}
+
+.peta-box img { width: 100%; height: auto; display: block; }
+
+.peta-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.88rem;
+    text-align: center;
+    padding: 20px;
+}
+
+.peta-placeholder i { font-size: 2.2rem; color: #9CA3AF; }
+
+.legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 14px;
+    font-size: 0.84rem;
+    color: var(--text);
+}
+
+.legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ── Panel hasil terpilih ── */
+.metric-list { margin: 0; }
+
+.metric-list div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.87rem;
+}
+
+.metric-list dt { font-weight: 400; color: var(--muted); }
+.metric-list dd { margin: 0; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.q-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-left: 6px;
+}
+
+.dist-bar {
+    display: flex;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--line);
+    margin: 18px 0 6px;
+}
+
+.dist-bar span { display: block; height: 100%; transition: width 0.3s ease; }
+
+.cluster-group { margin-top: 16px; }
+
+.cluster-group-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+}
+
+.cluster-group-head small { font-weight: 400; color: var(--muted); }
+
+.kec-list { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.kec-list span {
+    font-size: 0.78rem;
+    color: var(--text);
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px 8px;
+}
+
+/* ── Tabel evaluasi ── */
+.best-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--green-dark);
+    background: var(--green-pale);
+    border-radius: 5px;
+    padding: 1px 7px;
+    margin-left: 6px;
+}
+
+.q-text { font-size: 0.82rem; font-weight: 600; }
+.q-sangat-baik { color: #065F46; }
+.q-baik        { color: #1E40AF; }
+.q-cukup       { color: #92400E; }
+.q-buruk       { color: #991B1B; }
+
+.c-count { font-weight: 700; font-variant-numeric: tabular-nums; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+    <!-- ── HEADER ───────────────────────────────────────── -->
+    <div class="col-12">
+        <div class="page-head">
+            <div>
+                <div class="page-eyebrow">Dashboard</div>
+                <h1 class="page-title">Selamat datang, {{ session.get('username', 'User') }}</h1>
+                <p class="page-desc">
+                    Ringkasan hasil K-Means Clustering produksi dan produktivitas
+                    perkebunan di {{ total_kecamatan }} kecamatan Kabupaten Bireuen.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if status and not status.all_ready %}
+    <div class="col-12">
+        <div class="status-alert status-warning">
+            <i class="ph ph-warning" style="font-size:1.2rem;flex-shrink:0;"></i>
+            <span><strong>Beberapa file hasil belum tersedia.</strong>
+            Jalankan notebook <code>kmeans.ipynb</code> lalu muat ulang halaman ini.</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── ANGKA KUNCI ──────────────────────────────────── -->
+    <div class="col-12">
+        <div class="facts" style="--facts:4;">
+            <div class="fact">
+                <span class="fact-val">{{ total_records }}</span>
+                <span class="fact-lbl">Record data</span>
+                <span class="fact-note">{{ total_kecamatan }} kecamatan × {{ years | length }} tahun × {{ komoditas_list | length }} komoditas</span>
+            </div>
+            <div class="fact">
+                <span class="fact-val">{{ avg_sil if avg_sil else '—' }}</span>
+                <span class="fact-lbl">Rata-rata Silhouette</span>
+                <span class="fact-note">Makin mendekati 1 makin baik</span>
+            </div>
+            <div class="fact">
+                <span class="fact-val">{{ avg_dbi if avg_dbi else '—' }}</span>
+                <span class="fact-lbl">Rata-rata DBI</span>
+                <span class="fact-note">Makin kecil makin baik</span>
+            </div>
+            <div class="fact">
+                <span class="fact-val">{{ best_komoditas or '—' }}</span>
+                <span class="fact-lbl">Cluster paling terpisah</span>
+                <span class="fact-note">Komoditas dengan rata-rata DBI terkecil</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── PETA + HASIL TERPILIH ────────────────────────── -->
+    <div class="col-xl-8">
+        <section class="panel h-100">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Peta cluster per kecamatan</h2>
+                    <p class="panel-sub" id="petaSub">—</p>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-3 mb-3">
+                <div>
+                    <div class="seg-label">Komoditas</div>
+                    <div class="seg" id="komSelector" role="group" aria-label="Pilih komoditas">
+                        {% for k in komoditas_list %}
+                        <button type="button" class="seg-btn {% if loop.first %}active{% endif %}"
+                                data-kom="{{ k }}" onclick="selectKomoditas('{{ k }}')">
+                            <i class="dot dot-{{ k | lower }}"></i>{{ k }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div>
+                    <div class="seg-label">Tahun</div>
+                    <div class="seg" id="tahunSelector" role="group" aria-label="Pilih tahun">
+                        {% for y in years %}
+                        <button type="button" class="seg-btn {% if loop.last %}active{% endif %}"
+                                data-tahun="{{ y }}" onclick="selectTahun({{ y }})">{{ y }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="peta-box">
+                <div class="peta-placeholder" id="petaPlaceholder">
+                    <i class="ph ph-map-trifold"></i>
+                    <span>Memuat peta…</span>
+                </div>
+                <img id="petaImg" src="" alt="Peta cluster kecamatan" style="display:none;">
+            </div>
+
+            <div class="legend-row">
+                <span><i class="dot dot-rendah"></i>Rendah</span>
+                <span><i class="dot dot-sedang"></i>Sedang</span>
+                <span><i class="dot dot-tinggi"></i>Tinggi</span>
+                <span style="color:var(--muted);">Kategori diurutkan dari rata-rata produksi tiap cluster</span>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="panel h-100">
+            <h2 class="panel-title">Hasil clustering</h2>
+            <p class="panel-sub" id="statLabel">—</p>
+
+            <dl class="metric-list mt-3">
+                <div><dt>Silhouette Score</dt><dd><span id="statSil">—</span><span class="q-label" id="evalSil"></span></dd></div>
+                <div><dt>DBI</dt><dd><span id="statDbi">—</span><span class="q-label" id="evalDbi"></span></dd></div>
+                <div><dt>Iterasi</dt><dd id="statIter">—</dd></div>
+                <div><dt>Inertia</dt><dd id="statInertia">—</dd></div>
+            </dl>
+
+            <div class="dist-bar" id="distBar" aria-hidden="true">
+                <span style="background:var(--cluster-rendah);width:0"></span>
+                <span style="background:var(--cluster-sedang);width:0"></span>
+                <span style="background:var(--cluster-tinggi);width:0"></span>
+            </div>
+
+            <div id="clusterGroups"></div>
+        </section>
+    </div>
+
+    <!-- ── TABEL EVALUASI ───────────────────────────────── -->
+    <div class="col-12">
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Evaluasi semua komoditas dan tahun</h2>
+                    <p class="panel-sub">Tanda <strong>Terbaik</strong> menunjukkan tahun dengan DBI terkecil pada tiap komoditas.</p>
+                </div>
+            </div>
+
+            {% if evaluasi %}
+            <div class="table-responsive">
+                <table class="table data-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Komoditas</th>
+                            <th>Tahun</th>
+                            <th>Silhouette</th>
+                            <th>DBI</th>
+                            <th>Kualitas DBI</th>
+                            <th>Iterasi</th>
+                            <th>Rendah</th>
+                            <th>Sedang</th>
+                            <th>Tinggi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in evaluasi %}
+                        {% set best = final and final.best_clustering[row.Komoditas] and final.best_clustering[row.Komoditas].tahun == row.Tahun %}
+                        <tr>
+                            <td><span class="k-badge k-{{ row.Komoditas | lower }}">{{ row.Komoditas }}</span></td>
+                            <td>
+                                <strong>{{ row.Tahun }}</strong>
+                                {% if best %}<span class="best-mark"><i class="ph ph-check"></i>Terbaik</span>{% endif %}
+                            </td>
+                            <td>{{ "%.4f"|format(row['Silhouette Score']) }}</td>
+                            <td><strong>{{ "%.4f"|format(row['DBI Score']) }}</strong></td>
+                            <td>
+                                {% set dbi = row['DBI Score'] %}
+                                {% if dbi <= 0.5 %}<span class="q-text q-sangat-baik">Sangat baik</span>
+                                {% elif dbi <= 1.0 %}<span class="q-text q-baik">Baik</span>
+                                {% elif dbi <= 1.5 %}<span class="q-text q-cukup">Cukup</span>
+                                {% else %}<span class="q-text q-buruk">Perlu perbaikan</span>{% endif %}
+                            </td>
+                            <td>{{ row.Iterasi }}</td>
+                            <td><span class="c-count" style="color:#2E7D32;">{{ row['Cluster Rendah'] }}</span></td>
+                            <td><span class="c-count" style="color:#B45309;">{{ row['Cluster Sedang'] }}</span></td>
+                            <td><span class="c-count" style="color:#C62828;">{{ row['Cluster Tinggi'] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="note">
+                Kategori DBI: ≤ 0,5 sangat baik · 0,5–1,0 baik · 1,0–1,5 cukup · &gt; 1,5 perlu perbaikan.
+                Kolom Rendah, Sedang, Tinggi menunjukkan jumlah kecamatan pada tiap cluster.
+            </p>
+            {% else %}
+            <div class="status-alert status-warning">
+                <i class="ph ph-warning"></i>
+                Data evaluasi belum tersedia. Jalankan notebook terlebih dahulu.
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+</div>
+
+<script>
+let selectedKom   = '{{ komoditas_list[0] }}';
+let selectedTahun = {{ years[-1] }};
+
+const CLUSTER = [
+    { id: 1, nama: 'Rendah', cls: 'dot-rendah' },
+    { id: 2, nama: 'Sedang', cls: 'dot-sedang' },
+    { id: 3, nama: 'Tinggi', cls: 'dot-tinggi' },
+];
+
+function selectKomoditas(kom) {
+    selectedKom = kom;
+    document.querySelectorAll('#komSelector .seg-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.kom === kom));
+    loadData();
+}
+
+function selectTahun(tahun) {
+    selectedTahun = tahun;
+    document.querySelectorAll('#tahunSelector .seg-btn').forEach(b =>
+        b.classList.toggle('active', parseInt(b.dataset.tahun) === tahun));
+    loadData();
+}
+
+function loadData() {
+    const label = `${selectedKom} · ${selectedTahun}`;
+    document.getElementById('petaSub').textContent   = label;
+    document.getElementById('statLabel').textContent = label;
+    loadPeta();
+    loadStats();
+}
+
+function petaMessage(icon, text) {
+    const ph = document.getElementById('petaPlaceholder');
+    ph.style.display = 'flex';
+    ph.innerHTML = `<i class="ph ${icon}"></i><span>${text}</span>`;
+}
+
+function loadPeta() {
+    const img = document.getElementById('petaImg');
+    img.style.display = 'none';
+    petaMessage('ph-map-trifold', 'Memuat peta…');
+
+    fetch(`/api/peta/${selectedKom}/${selectedTahun}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.available || !data.url) {
+                petaMessage('ph-image-broken',
+                    'Peta belum tersedia. Jalankan notebook <code>kmeans.ipynb</code> untuk membuatnya.');
+                return;
+            }
+            img.onload = () => {
+                document.getElementById('petaPlaceholder').style.display = 'none';
+                img.style.display = 'block';
+            };
+            img.onerror = () => petaMessage('ph-image-broken',
+                'File peta tidak bisa dibuka. Coba jalankan ulang notebook.');
+            img.src = data.url;
+        })
+        .catch(() => petaMessage('ph-wifi-slash',
+            'Gagal menghubungi server. Pastikan aplikasi Flask masih berjalan.'));
+}
+
+function setText(id, value) {
+    document.getElementById(id).textContent = value ?? '—';
+}
+
+function loadStats() {
+    fetch(`/api/clustering/${selectedKom}/${selectedTahun}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) return resetStats();
+
+            setText('statSil', data.silhouette_score);
+            setText('statDbi', data.dbi_score);
+            setText('statIter', data.n_iter);
+            setText('statInertia', data.inertia);
+            setText('evalSil', getSilKualitas(data.silhouette_score).label);
+            setText('evalDbi', getDbiKualitas(data.dbi_score).label);
+
+            const kec   = data.kecamatan_data || [];
+            const total = kec.length || 1;
+            const bars  = document.querySelectorAll('#distBar span');
+
+            document.getElementById('clusterGroups').innerHTML = CLUSTER.map((c, i) => {
+                const anggota = kec.filter(k => k.cluster === c.id)
+                                   .sort((a, b) => b.Produksi_Ton - a.Produksi_Ton);
+                bars[i].style.width = (anggota.length / total * 100) + '%';
+                return `
+                    <div class="cluster-group">
+                        <div class="cluster-group-head">
+                            <i class="dot ${c.cls}"></i>${c.nama}
+                            <small>${anggota.length} kecamatan</small>
+                        </div>
+                        <div class="kec-list">
+                            ${anggota.map(k => `<span title="${k.Produksi_Ton} ton">${k.kecamatan}</span>`).join('')
+                              || '<span>—</span>'}
+                        </div>
+                    </div>`;
+            }).join('');
+        })
+        .catch(() => resetStats());
+}
+
+function resetStats() {
+    ['statSil','statDbi','statIter','statInertia','evalSil','evalDbi']
+        .forEach(id => setText(id, id.startsWith('eval') ? '' : '—'));
+    document.querySelectorAll('#distBar span').forEach(b => b.style.width = 0);
+    document.getElementById('clusterGroups').innerHTML =
+        '<p class="note">Data clustering untuk pilihan ini belum tersedia.</p>';
+}
+
+document.addEventListener('DOMContentLoaded', loadData);
+</script>
+{% endblock %}

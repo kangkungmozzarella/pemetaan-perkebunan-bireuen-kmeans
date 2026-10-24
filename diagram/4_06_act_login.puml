@@ -1,0 +1,20 @@
+@startuml
+!include _style.iuml
+|Admin|
+start
+:Buka halaman login;
+|Sistem|
+:Tampilkan form login;
+|Admin|
+repeat
+  :Isi username dan password;
+  :Klik tombol Masuk;
+  |Sistem|
+  :Periksa username dan password;
+  backward:Tampilkan pesan\n"Username atau Password salah";
+repeat while (Kredensial valid?) is (tidak) not (ya)
+:Simpan sesi login;
+:Tampilkan halaman dashboard;
+|Admin|
+stop
+@enduml

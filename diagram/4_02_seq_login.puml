@@ -1,0 +1,22 @@
+@startuml
+!include _style.iuml
+autonumber
+actor Admin
+participant "Halaman Login" as UI
+participant "Flask\n/admin/login" as F
+participant "Session" as S
+Admin -> UI : Buka halaman login
+UI -> F : GET /admin/login
+F --> UI : Tampilkan form login
+Admin -> UI : Isi username & password, klik Masuk
+UI -> F : POST /admin/login
+F -> F : Periksa username & password
+alt Kredensial valid
+  F -> S : Simpan username ke session
+  F --> UI : Redirect ke /dashboard
+  UI --> Admin : Tampilkan dashboard
+else Kredensial tidak valid
+  F --> UI : Flash "Username atau Password salah"
+  UI --> Admin : Tampilkan pesan kesalahan
+end
+@enduml

@@ -1,0 +1,629 @@
+{% extends "layouts/main_layout.html" %}
+
+{% block title %}Tentang Penelitian - Pemetaan Geospasial Perkebunan Kabupaten Bireuen{% endblock %}
+{% block topbar_title %}Tentang{% endblock %}
+
+{% block extra_css %}
+<style>
+    .about {
+        --ink:        #1A1A2E;
+        --text:       #374151;
+        --muted:      #6B7280;
+        --line:       #E5E7EB;
+        --surface:    #FFFFFF;
+        --soft:       #F6F8F7;
+        --green-dark: #1B4332;
+        --green-mid:  #2D6A4F;
+        --green-pale: #E8F3EC;
+        --c-karet:    #1B4332;
+        --c-kelapa:   #92400E;
+        --c-pinang:   #0F766E;
+        color: var(--text);
+    }
+
+    .about-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 28px;
+    }
+
+    .about-eyebrow {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--green-mid);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .about-h2 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--green-dark);
+        margin: 0 0 14px;
+    }
+
+    .about-lead {
+        font-size: 0.95rem;
+        line-height: 1.75;
+        margin: 0;
+    }
+
+    /* ── INTRO ───────────────────────────────────────── */
+    .intro-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+        font-weight: 700;
+        line-height: 1.25;
+        color: var(--green-dark);
+        margin: 0 0 14px;
+    }
+
+    .intro-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        margin-top: 20px;
+        font-size: 0.86rem;
+        color: var(--muted);
+    }
+
+    .intro-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .intro-meta i    { color: var(--green-mid); font-size: 1rem; }
+
+    .intro-map {
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        margin: 0;
+    }
+
+    .intro-map img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px;
+    }
+
+    .intro-map figcaption {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 8px;
+        text-align: center;
+    }
+
+    .about-facts {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        border-top: 1px solid var(--line);
+        margin-top: 28px;
+        padding-top: 22px;
+    }
+
+    .about-fact { padding: 0 16px; border-left: 1px solid var(--line); }
+    .about-fact:first-child { border-left: none; padding-left: 0; }
+
+    .about-fact-val {
+        display: block;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--green-dark);
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .about-fact-lbl { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── TUJUAN ──────────────────────────────────────── */
+    .goal-list { list-style: none; padding: 0; margin: 0; counter-reset: goal; }
+
+    .goal-list li {
+        counter-increment: goal;
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 12px;
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .goal-list li:first-child { border-top: none; padding-top: 0; }
+
+    .goal-list li::before {
+        content: counter(goal, decimal-leading-zero);
+        font-weight: 700;
+        color: var(--green-mid);
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* ── KOMODITAS ───────────────────────────────────── */
+    .kom-card {
+        height: 100%;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .kom-head { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+
+    .kom-dot {
+        width: 12px; height: 12px;
+        border-radius: 50%;
+        background: var(--kom-color);
+        flex-shrink: 0;
+    }
+
+    .kom-name  { font-size: 1.1rem; font-weight: 700; color: var(--ink); margin: 0; }
+    .kom-latin { font-size: 0.8rem; font-style: italic; color: var(--muted); margin: 0 0 12px 22px; }
+    .kom-desc  { font-size: 0.87rem; line-height: 1.65; margin-bottom: 18px; }
+
+    .kom-stats { margin: auto 0 0; border-top: 1px solid var(--line); }
+
+    .kom-stats div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.84rem;
+    }
+
+    .kom-stats div:last-child { border-bottom: none; padding-bottom: 0; }
+    .kom-stats dt { font-weight: 400; color: var(--muted); }
+    .kom-stats dd { margin: 0; font-weight: 600; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+    .kom-stats dd strong { color: var(--kom-color); }
+
+    .about-note { font-size: 0.78rem; color: var(--muted); margin: 12px 0 0; }
+
+    /* ── ALUR ────────────────────────────────────────── */
+    .flow {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0;
+        counter-reset: step;
+    }
+
+    .flow li {
+        counter-increment: step;
+        position: relative;
+        padding: 0 14px 0 0;
+    }
+
+    /* garis penghubung antar langkah */
+    .flow li::after {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 34px;
+        right: 8px;
+        height: 2px;
+        background: var(--line);
+    }
+
+    .flow li:last-child::after { display: none; }
+
+    .flow-num {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        background: var(--green-dark);
+        color: white;
+        font-size: 0.82rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        margin-bottom: 12px;
+    }
+
+    .flow-num::before { content: counter(step); }
+
+    .flow-title { font-size: 0.9rem; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+    .flow-desc  { font-size: 0.8rem; line-height: 1.55; color: var(--muted); }
+
+    /* ── PARAMETER & EVALUASI ───────────────────────── */
+    .param-list { margin: 0; }
+
+    .param-list div {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.87rem;
+    }
+
+    .param-list div:last-child { border-bottom: none; }
+    .param-list dt { font-weight: 400; color: var(--muted); }
+    .param-list dd { margin: 0; color: var(--ink); font-weight: 600; }
+
+    .formula {
+        display: block;
+        font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+        font-size: 0.82rem;
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin: 8px 0;
+        color: var(--ink);
+        overflow-x: auto;
+    }
+
+    .metric + .metric { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 18px; }
+    .metric-name { font-weight: 700; color: var(--ink); font-size: 0.95rem; }
+    .metric p    { font-size: 0.86rem; line-height: 1.65; margin: 4px 0 0; }
+
+    .metric-rule {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--green-dark);
+        background: var(--green-pale);
+        border-radius: 6px;
+        padding: 3px 10px;
+        margin-top: 6px;
+    }
+
+    /* ── TEKNOLOGI & MANFAAT ────────────────────────── */
+    .tech-group + .tech-group { margin-top: 16px; }
+    .tech-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+    .tech-tags  { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .tech-tags span {
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--ink);
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 4px 10px;
+    }
+
+    .benefit { display: grid; grid-template-columns: 36px 1fr; gap: 12px; }
+    .benefit + .benefit { margin-top: 18px; }
+
+    .benefit-icon {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        background: var(--green-pale);
+        color: var(--green-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .benefit h3 { font-size: 0.92rem; font-weight: 700; color: var(--ink); margin: 0 0 2px; }
+    .benefit p  { font-size: 0.86rem; line-height: 1.6; margin: 0; }
+
+    /* ── RESPONSIVE ─────────────────────────────────── */
+    @media (max-width: 991px) {
+        .flow { grid-template-columns: repeat(3, 1fr); row-gap: 24px; }
+        .flow li:nth-child(3)::after { display: none; }
+    }
+
+    @media (max-width: 767px) {
+        .about-card { padding: 20px; }
+        .about-facts { grid-template-columns: repeat(2, 1fr); row-gap: 18px; }
+        .about-fact { border-left: none; padding: 0; }
+        .flow { grid-template-columns: 1fr; }
+        .flow li { display: grid; grid-template-columns: 32px 1fr; column-gap: 14px; padding: 0; }
+        .flow li::after { top: 34px; bottom: -22px; left: 15px; right: auto; width: 2px; height: auto; }
+        .flow li:nth-child(3)::after { display: block; }
+        .flow li:last-child::after { display: none; }
+        .flow-num { margin: 0; grid-row: span 2; }
+        .param-list div { grid-template-columns: 1fr; gap: 2px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set kom_info = [
+    {'nama': 'Karet',  'latin': 'Hevea brasiliensis', 'warna': 'var(--c-karet)',
+     'desc': 'Tanaman penghasil getah (lateks) yang diolah menjadi bahan baku industri karet. Tercatat berproduksi di seluruh kecamatan dalam dataset.'},
+    {'nama': 'Kelapa', 'latin': 'Cocos nucifera', 'warna': 'var(--c-kelapa)',
+     'desc': 'Komoditas dengan produksi terbesar di antara ketiga komoditas. Buahnya dimanfaatkan sebagai bahan pangan, minyak, dan berbagai produk olahan.'},
+    {'nama': 'Pinang', 'latin': 'Areca catechu', 'warna': 'var(--c-pinang)',
+     'desc': 'Tanaman palma yang buahnya diperdagangkan sebagai bahan baku industri dan komoditas ekspor.'},
+] %}
+
+<div class="about">
+<div class="row g-4">
+
+    <!-- ── INTRO ─────────────────────────────────────────── -->
+    <div class="col-12">
+        <section class="about-card">
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-7">
+                    <div class="about-eyebrow">
+                        <i class="ph ph-book-open"></i>Tentang Penelitian
+                    </div>
+                    <h1 class="intro-title">
+                        Pemetaan Geospasial Hasil Perkebunan di Kabupaten Bireuen
+                    </h1>
+                    <p class="about-lead">
+                        Implementasi metode K-Means Clustering untuk mengelompokkan
+                        {{ total_kecamatan }} kecamatan berdasarkan produksi dan
+                        produktivitas perkebunan karet, kelapa, dan pinang, lalu
+                        memetakan hasilnya ke dalam peta geospasial Kabupaten
+                        Bireuen, Provinsi Aceh.
+                    </p>
+                    <div class="intro-meta">
+                        <span><i class="ph ph-map-pin"></i>Kabupaten Bireuen, Aceh</span>
+                        <span><i class="ph ph-calendar-blank"></i>Data 2020 – 2024</span>
+                        <span><i class="ph ph-chart-scatter"></i>K-Means Clustering</span>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <figure class="intro-map">
+                        <img src="{{ url_for('static', filename='images/maps/peta_dasar.png') }}"
+                             alt="Peta wilayah kecamatan Kabupaten Bireuen">
+                        <figcaption>Wilayah {{ total_kecamatan }} kecamatan Kabupaten Bireuen</figcaption>
+                    </figure>
+                </div>
+            </div>
+
+            <div class="about-facts">
+                <div class="about-fact">
+                    <span class="about-fact-val">{{ total_records }}</span>
+                    <span class="about-fact-lbl">Record data</span>
+                </div>
+                <div class="about-fact">
+                    <span class="about-fact-val">{{ total_kecamatan }}</span>
+                    <span class="about-fact-lbl">Kecamatan</span>
+                </div>
+                <div class="about-fact">
+                    <span class="about-fact-val">{{ komoditas_list | length }}</span>
+                    <span class="about-fact-lbl">Komoditas</span>
+                </div>
+                <div class="about-fact">
+                    <span class="about-fact-val">{{ clustering_vars | length }}</span>
+                    <span class="about-fact-lbl">Variabel clustering</span>
+                </div>
+                <div class="about-fact">
+                    <span class="about-fact-val">K = {{ n_clusters }}</span>
+                    <span class="about-fact-lbl">Rendah · Sedang · Tinggi</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ── LATAR BELAKANG + TUJUAN ──────────────────────── -->
+    <div class="col-lg-7">
+        <section class="about-card h-100">
+            <h2 class="about-h2">Latar Belakang</h2>
+            <p class="about-lead mb-3">
+                Sektor perkebunan merupakan salah satu penopang perekonomian
+                Kabupaten Bireuen. Setiap kecamatan memiliki jumlah produksi dan
+                tingkat produktivitas yang berbeda, tetapi data tersebut umumnya
+                hanya disajikan dalam bentuk tabel statistik.
+            </p>
+            <p class="about-lead">
+                Tabel statistik belum menunjukkan secara langsung kecamatan mana
+                yang memiliki karakteristik produksi serupa. Penelitian ini
+                mengelompokkan kecamatan menggunakan K-Means Clustering, lalu
+                menampilkan hasilnya dalam peta agar persebaran hasil perkebunan
+                mudah dipahami.
+            </p>
+        </section>
+    </div>
+
+    <div class="col-lg-5">
+        <section class="about-card h-100">
+            <h2 class="about-h2">Tujuan Penelitian</h2>
+            <ol class="goal-list">
+                <li>Menerapkan K-Means Clustering untuk mengelompokkan
+                    kecamatan berdasarkan produksi dan produktivitas.</li>
+                <li>Mengetahui kecamatan yang termasuk kategori rendah,
+                    sedang, dan tinggi untuk setiap komoditas.</li>
+                <li>Memvisualisasikan hasil pengelompokan dalam peta
+                    geospasial berbasis web.</li>
+            </ol>
+        </section>
+    </div>
+
+    <!-- ── KOMODITAS ─────────────────────────────────────── -->
+    <div class="col-12">
+        <h2 class="about-h2 mb-3">Komoditas yang Diteliti</h2>
+        <div class="row g-3">
+            {% for k in kom_info %}
+            {% set r = ringkasan.get(k.nama) %}
+            <div class="col-lg-4">
+                <article class="kom-card" style="--kom-color: {{ k.warna }};">
+                    <div class="kom-head">
+                        <span class="kom-dot"></span>
+                        <h3 class="kom-name">{{ k.nama }}</h3>
+                    </div>
+                    <p class="kom-latin">{{ k.latin }}</p>
+                    <p class="kom-desc">{{ k.desc }}</p>
+                    {% if r %}
+                    <dl class="kom-stats">
+                        <div>
+                            <dt>Total produksi {{ tahun_akhir }}</dt>
+                            <dd><strong>{{ r.total_produksi | angka }}</strong> ton</dd>
+                        </div>
+                        <div>
+                            <dt>Produksi tertinggi</dt>
+                            <dd>{{ r.kec_tertinggi }}<br>
+                                <span style="font-weight:400;color:var(--muted);">
+                                    {{ r.produksi_tertinggi | angka }} ton
+                                </span>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>Rata-rata produktivitas</dt>
+                            <dd>{{ r.rata_produktivitas | angka }} kg/ha</dd>
+                        </div>
+                    </dl>
+                    {% endif %}
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="about-note">
+            Angka dihitung dari dataset tahun {{ tahun_akhir }} untuk {{ total_kecamatan }} kecamatan.
+        </p>
+    </div>
+
+    <!-- ── ALUR PENELITIAN ───────────────────────────────── -->
+    <div class="col-12">
+        <section class="about-card">
+            <h2 class="about-h2 mb-4">Alur Penelitian</h2>
+            <ol class="flow">
+                <li>
+                    <div class="flow-num"></div>
+                    <div class="flow-title">Pengumpulan data</div>
+                    <div class="flow-desc">Data produksi &amp; produktivitas
+                        {{ total_kecamatan }} kecamatan, 2020–2024</div>
+                </li>
+                <li>
+                    <div class="flow-num"></div>
+                    <div class="flow-title">Data cleaning</div>
+                    <div class="flow-desc">Hapus baris total, seragamkan nama
+                        kecamatan, konversi teks ke angka</div>
+                </li>
+                <li>
+                    <div class="flow-num"></div>
+                    <div class="flow-title">Normalisasi</div>
+                    <div class="flow-desc">Min-Max Scaling agar kedua variabel
+                        berada pada rentang 0–1</div>
+                </li>
+                <li>
+                    <div class="flow-num"></div>
+                    <div class="flow-title">K-Means (K = 3)</div>
+                    <div class="flow-desc">Dijalankan per komoditas per tahun,
+                        {{ komoditas_list | length * years | length }} kali proses</div>
+                </li>
+                <li>
+                    <div class="flow-num"></div>
+                    <div class="flow-title">Evaluasi</div>
+                    <div class="flow-desc">Silhouette Score dan Davies-Bouldin
+                        Index</div>
+                </li>
+                <li>
+                    <div class="flow-num"></div>
+                    <div class="flow-title">Pemetaan</div>
+                    <div class="flow-desc">Peta choropleth per kecamatan
+                        ditampilkan di aplikasi web</div>
+                </li>
+            </ol>
+        </section>
+    </div>
+
+    <!-- ── PARAMETER + EVALUASI ──────────────────────────── -->
+    <div class="col-lg-6">
+        <section class="about-card h-100">
+            <h2 class="about-h2">Parameter K-Means</h2>
+            <dl class="param-list">
+                <div><dt>Variabel</dt><dd>Produksi (ton), Produktivitas (kg/ha)</dd></div>
+                <div><dt>Jumlah cluster</dt><dd>K = 3 (Rendah, Sedang, Tinggi)</dd></div>
+                <div><dt>Normalisasi</dt><dd>Min-Max Scaling</dd></div>
+                <div><dt>Jarak</dt><dd>Euclidean Distance</dd></div>
+                <div><dt>Inisialisasi</dt><dd>n_init = 10, random_state = 42</dd></div>
+                <div><dt>Iterasi maksimum</dt><dd>300</dd></div>
+                <div><dt>Penentuan label</dt><dd>Diurutkan berdasarkan rata-rata produksi setiap cluster</dd></div>
+            </dl>
+            <span class="formula">X' = (X − X<sub>min</sub>) / (X<sub>max</sub> − X<sub>min</sub>)</span>
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section class="about-card h-100">
+            <h2 class="about-h2">Evaluasi Clustering</h2>
+            <div class="metric">
+                <div class="metric-name">Silhouette Score</div>
+                <p>Mengukur seberapa dekat suatu kecamatan dengan anggota
+                    clusternya dibandingkan dengan cluster lain.</p>
+                <span class="formula">s(i) = (b(i) − a(i)) / max(a(i), b(i))</span>
+                <span class="metric-rule">
+                    <i class="ph ph-arrow-up"></i>Rentang −1 sampai 1, makin mendekati 1 makin baik
+                </span>
+            </div>
+            <div class="metric">
+                <div class="metric-name">Davies-Bouldin Index (DBI)</div>
+                <p>Mengukur perbandingan sebaran di dalam cluster terhadap
+                    jarak antar cluster.</p>
+                <span class="formula">DBI = (1/k) Σ max<sub>j≠i</sub> R<sub>ij</sub></span>
+                <span class="metric-rule">
+                    <i class="ph ph-arrow-down"></i>Makin kecil makin baik
+                </span>
+            </div>
+        </section>
+    </div>
+
+    <!-- ── TEKNOLOGI + MANFAAT ───────────────────────────── -->
+    <div class="col-lg-5">
+        <section class="about-card h-100">
+            <h2 class="about-h2">Teknologi</h2>
+            <div class="tech-group">
+                <div class="tech-label">Analisis data</div>
+                <div class="tech-tags">
+                    <span>Python</span><span>Jupyter Notebook</span>
+                    <span>pandas</span><span>NumPy</span><span>scikit-learn</span>
+                </div>
+            </div>
+            <div class="tech-group">
+                <div class="tech-label">Geospasial</div>
+                <div class="tech-tags">
+                    <span>GeoPandas</span><span>Shapely</span>
+                    <span>Matplotlib</span><span>Shapefile Bireuen</span>
+                </div>
+            </div>
+            <div class="tech-group">
+                <div class="tech-label">Aplikasi web</div>
+                <div class="tech-tags">
+                    <span>Flask</span><span>Bootstrap 5</span>
+                    <span>DataTables</span><span>Phosphor Icons</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-lg-7">
+        <section class="about-card h-100">
+            <h2 class="about-h2">Manfaat Penelitian</h2>
+            <div class="benefit">
+                <div class="benefit-icon"><i class="ph ph-buildings"></i></div>
+                <div>
+                    <h3>Pemerintah daerah</h3>
+                    <p>Peta persebaran produksi dapat menjadi bahan pertimbangan
+                        dalam perencanaan program dan pembinaan perkebunan per
+                        kecamatan.</p>
+                </div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon"><i class="ph ph-graduation-cap"></i></div>
+                <div>
+                    <h3>Akademis</h3>
+                    <p>Referensi penerapan K-Means Clustering dan WebGIS pada
+                        data hasil perkebunan.</p>
+                </div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon"><i class="ph ph-arrows-clockwise"></i></div>
+                <div>
+                    <h3>Sistem</h3>
+                    <p>Hasil dapat diperbarui dengan menjalankan ulang notebook
+                        saat data baru tersedia, tanpa mengubah kode aplikasi.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+</div>
+</div>
+{% endblock %}

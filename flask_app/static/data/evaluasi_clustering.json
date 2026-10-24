@@ -1,0 +1,167 @@
+[
+  {
+    "Komoditas": "Karet",
+    "Tahun": 2020,
+    "Silhouette Score": 0.6693,
+    "DBI Score": 0.4389,
+    "Iterasi": 6,
+    "Inertia": 0.3178,
+    "Cluster Rendah": 2,
+    "Cluster Sedang": 13,
+    "Cluster Tinggi": 2
+  },
+  {
+    "Komoditas": "Karet",
+    "Tahun": 2021,
+    "Silhouette Score": 0.6283,
+    "DBI Score": 0.4558,
+    "Iterasi": 3,
+    "Inertia": 0.3616,
+    "Cluster Rendah": 2,
+    "Cluster Sedang": 12,
+    "Cluster Tinggi": 3
+  },
+  {
+    "Komoditas": "Karet",
+    "Tahun": 2022,
+    "Silhouette Score": 0.5133,
+    "DBI Score": 0.5748,
+    "Iterasi": 2,
+    "Inertia": 0.4641,
+    "Cluster Rendah": 2,
+    "Cluster Sedang": 12,
+    "Cluster Tinggi": 3
+  },
+  {
+    "Komoditas": "Karet",
+    "Tahun": 2023,
+    "Silhouette Score": 0.4616,
+    "DBI Score": 0.6302,
+    "Iterasi": 2,
+    "Inertia": 0.5157,
+    "Cluster Rendah": 2,
+    "Cluster Sedang": 11,
+    "Cluster Tinggi": 4
+  },
+  {
+    "Komoditas": "Karet",
+    "Tahun": 2024,
+    "Silhouette Score": 0.4853,
+    "DBI Score": 0.6209,
+    "Iterasi": 2,
+    "Inertia": 0.4717,
+    "Cluster Rendah": 2,
+    "Cluster Sedang": 11,
+    "Cluster Tinggi": 4
+  },
+  {
+    "Komoditas": "Kelapa",
+    "Tahun": 2020,
+    "Silhouette Score": 0.6303,
+    "DBI Score": 0.3511,
+    "Iterasi": 4,
+    "Inertia": 0.4282,
+    "Cluster Rendah": 11,
+    "Cluster Sedang": 1,
+    "Cluster Tinggi": 5
+  },
+  {
+    "Komoditas": "Kelapa",
+    "Tahun": 2021,
+    "Silhouette Score": 0.6296,
+    "DBI Score": 0.3525,
+    "Iterasi": 4,
+    "Inertia": 0.4288,
+    "Cluster Rendah": 11,
+    "Cluster Sedang": 1,
+    "Cluster Tinggi": 5
+  },
+  {
+    "Komoditas": "Kelapa",
+    "Tahun": 2022,
+    "Silhouette Score": 0.5353,
+    "DBI Score": 0.5379,
+    "Iterasi": 4,
+    "Inertia": 0.5641,
+    "Cluster Rendah": 3,
+    "Cluster Sedang": 9,
+    "Cluster Tinggi": 5
+  },
+  {
+    "Komoditas": "Kelapa",
+    "Tahun": 2023,
+    "Silhouette Score": 0.3884,
+    "DBI Score": 0.8571,
+    "Iterasi": 3,
+    "Inertia": 0.8248,
+    "Cluster Rendah": 3,
+    "Cluster Sedang": 9,
+    "Cluster Tinggi": 5
+  },
+  {
+    "Komoditas": "Kelapa",
+    "Tahun": 2024,
+    "Silhouette Score": 0.3928,
+    "DBI Score": 0.8783,
+    "Iterasi": 2,
+    "Inertia": 0.8627,
+    "Cluster Rendah": 9,
+    "Cluster Sedang": 4,
+    "Cluster Tinggi": 4
+  },
+  {
+    "Komoditas": "Pinang",
+    "Tahun": 2020,
+    "Silhouette Score": 0.7419,
+    "DBI Score": 0.2931,
+    "Iterasi": 3,
+    "Inertia": 0.2887,
+    "Cluster Rendah": 12,
+    "Cluster Sedang": 4,
+    "Cluster Tinggi": 1
+  },
+  {
+    "Komoditas": "Pinang",
+    "Tahun": 2021,
+    "Silhouette Score": 0.5954,
+    "DBI Score": 0.3778,
+    "Iterasi": 2,
+    "Inertia": 0.4178,
+    "Cluster Rendah": 10,
+    "Cluster Sedang": 6,
+    "Cluster Tinggi": 1
+  },
+  {
+    "Komoditas": "Pinang",
+    "Tahun": 2022,
+    "Silhouette Score": 0.7632,
+    "DBI Score": 0.1698,
+    "Iterasi": 2,
+    "Inertia": 0.2048,
+    "Cluster Rendah": 12,
+    "Cluster Sedang": 4,
+    "Cluster Tinggi": 1
+  },
+  {
+    "Komoditas": "Pinang",
+    "Tahun": 2023,
+    "Silhouette Score": 0.7155,
+    "DBI Score": 0.2195,
+    "Iterasi": 2,
+    "Inertia": 0.2411,
+    "Cluster Rendah": 12,
+    "Cluster Sedang": 4,
+    "Cluster Tinggi": 1
+  },
+  {
+    "Komoditas": "Pinang",
+    "Tahun": 2024,
+    "Silhouette Score": 0.7389,
+    "DBI Score": 0.1876,
+    "Iterasi": 3,
+    "Inertia": 0.1571,
+    "Cluster Rendah": 12,
+    "Cluster Sedang": 4,
+    "Cluster Tinggi": 1
+  }
+]

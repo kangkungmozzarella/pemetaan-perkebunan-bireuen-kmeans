@@ -1,0 +1,33 @@
+@startuml
+!include _style.iuml
+autonumber
+actor Admin
+participant "Notebook\nkmeans.ipynb" as NB
+database "DATA DONE.xlsx\n& Bireuen.shp" as SRC
+database "File hasil\n(JSON, PNG)" as OUT
+participant "Halaman\nHasil Analisis" as UI
+participant "Flask\n/hasil-analisis" as F
+
+== Komputasi (dijalankan sekali di notebook) ==
+Admin -> NB : Jalankan notebook
+NB -> SRC : Baca data Excel & shapefile
+NB -> NB : Data cleaning
+loop Setiap komoditas (3) x tahun (5)
+  NB -> NB : Normalisasi Min-Max
+  NB -> NB : K-Means (K = 3)
+  NB -> NB : Label cluster dari rata-rata produksi
+  NB -> NB : Hitung Silhouette Score & DBI
+  NB -> OUT : Simpan peta choropleth (PNG)
+end
+NB -> OUT : Simpan kmeans_summary.json,\nevaluasi_clustering.json, final_results.json
+
+== Penayangan di web ==
+Admin -> UI : Klik menu Hasil Analisis
+UI -> F : GET /hasil-analisis
+F -> OUT : Muat file JSON
+OUT --> F : Hasil clustering & evaluasi
+F --> UI : render_template(hasil-analisis)
+Admin -> UI : Pilih komoditas & tahun
+UI -> OUT : Ambil gambar peta
+UI --> Admin : Peta, evaluasi, tabel kecamatan,\nperubahan cluster, grafik tren
+@enduml

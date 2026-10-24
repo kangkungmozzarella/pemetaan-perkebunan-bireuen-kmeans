@@ -1,0 +1,57 @@
+{
+  "project_info": {
+    "judul": "Pemetaan Geospasial Hasil Perkebunan di Kabupaten Bireuen",
+    "metode": "K-Means Clustering",
+    "komoditas": [
+      "Karet",
+      "Kelapa",
+      "Pinang"
+    ],
+    "tahun": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "n_clusters": 3,
+    "vars_cluster": [
+      "Produksi_Ton",
+      "Produktivitas_KgHa"
+    ],
+    "total_kec": 17,
+    "total_records": 255
+  },
+  "best_clustering": {
+    "Karet": {
+      "tahun": 2020,
+      "silhouette_score": 0.6693,
+      "dbi_score": 0.4389,
+      "distribusi": {
+        "1": 2,
+        "2": 13,
+        "3": 2
+      }
+    },
+    "Kelapa": {
+      "tahun": 2020,
+      "silhouette_score": 0.6303,
+      "dbi_score": 0.3511,
+      "distribusi": {
+        "1": 11,
+        "2": 1,
+        "3": 5
+      }
+    },
+    "Pinang": {
+      "tahun": 2022,
+      "silhouette_score": 0.7632,
+      "dbi_score": 0.1698,
+      "distribusi": {
+        "1": 12,
+        "2": 4,
+        "3": 1
+      }
+    }
+  }
+}

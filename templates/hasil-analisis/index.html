@@ -1,0 +1,499 @@
+{% extends "layouts/main_layout.html" %}
+
+{% block title %}Hasil Analisis - Pemetaan Geospasial Perkebunan Kabupaten Bireuen{% endblock %}
+{% block topbar_title %}Hasil Analisis{% endblock %}
+
+{% block extra_css %}
+<style>
+.picker {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 18px;
+}
+
+.picker-hint { font-size: 0.82rem; color: var(--muted); margin-left: auto; }
+
+.peta-box {
+    position: relative;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 320px;
+}
+
+.peta-box img { width: 100%; height: auto; display: block; }
+
+.peta-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.88rem;
+    text-align: center;
+    padding: 20px;
+}
+
+.peta-placeholder i { font-size: 2.2rem; color: #9CA3AF; }
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.metric-grid div { background: var(--surface); padding: 12px 14px; }
+.metric-grid span { display: block; font-size: 0.78rem; color: var(--muted); }
+.metric-grid strong { font-size: 1.2rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.metric-grid em { font-style: normal; font-size: 0.75rem; font-weight: 600; color: var(--green-mid); margin-left: 6px; }
+
+.sub-title { font-size: 0.9rem; font-weight: 700; color: var(--ink); margin: 20px 0 10px; }
+
+.mini-table { width: 100%; font-size: 0.84rem; font-variant-numeric: tabular-nums; }
+.mini-table th { font-weight: 600; color: var(--muted); padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: center; }
+.mini-table td { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: center; color: var(--ink); }
+.mini-table tr:last-child td { border-bottom: none; }
+.mini-table td:first-child, .mini-table th:first-child { text-align: left; }
+
+.c-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+/* ── Matriks perubahan cluster ── */
+.matrix { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: 0.82rem; }
+.matrix th { font-weight: 600; color: var(--muted); padding: 4px 6px; text-align: center; white-space: nowrap; }
+.matrix th:first-child { text-align: left; }
+.matrix td.kec { font-weight: 600; color: var(--ink); padding-right: 12px; white-space: nowrap; }
+
+.matrix td.cell {
+    text-align: center;
+    border-radius: 6px;
+    padding: 7px 4px;
+    font-weight: 600;
+    font-size: 0.76rem;
+    min-width: 72px;
+}
+
+.cell-1 { background: #E3F4E4; color: #1B5E20; }
+.cell-2 { background: #FFF0D9; color: #8A4B00; }
+.cell-3 { background: #FDE2E0; color: #8E1B12; }
+
+.matrix td.cell.cur { box-shadow: inset 0 0 0 2px currentColor; }
+
+.matrix td.change { font-size: 0.78rem; color: var(--muted); text-align: center; white-space: nowrap; }
+
+/* ── Ringkasan ── */
+.sum-card {
+    height: 100%;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    background: var(--surface);
+}
+
+.sum-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.sum-head h3 { font-size: 1rem; font-weight: 700; color: var(--ink); margin: 0; }
+
+.sum-list { list-style: none; padding: 0; margin: 0; font-size: 0.86rem; line-height: 1.6; }
+.sum-list li { padding: 8px 0; border-top: 1px solid var(--line); }
+.sum-list li:first-child { border-top: none; padding-top: 0; }
+.sum-list strong { color: var(--ink); }
+
+@media (max-width: 767px) {
+    .picker { position: static; }
+    .picker-hint { margin-left: 0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+    <!-- ── HEADER ───────────────────────────────────────── -->
+    <div class="col-12">
+        <div class="page-head">
+            <div>
+                <div class="page-eyebrow">Hasil Analisis</div>
+                <h1 class="page-title">Hasil K-Means Clustering</h1>
+                <p class="page-desc">
+                    Detail pengelompokan {{ total_kecamatan }} kecamatan untuk setiap
+                    komoditas dan tahun, perubahan cluster dari waktu ke waktu, serta
+                    tren kualitas clustering. Metode lengkap ada di halaman
+                    <a href="{{ url_for('tentang') }}">Tentang</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if not summary %}
+    <div class="col-12">
+        <div class="status-alert status-warning">
+            <i class="ph ph-warning" style="font-size:1.2rem;flex-shrink:0;"></i>
+            <span><strong>Hasil clustering belum tersedia.</strong>
+            Jalankan notebook <code>kmeans.ipynb</code> lalu muat ulang halaman ini.</span>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- ── PILIHAN ──────────────────────────────────────── -->
+    <div class="col-12">
+        <div class="picker">
+            <div>
+                <div class="seg-label">Komoditas</div>
+                <div class="seg" id="komSelector" role="group" aria-label="Pilih komoditas">
+                    {% for k in komoditas_list %}
+                    <button type="button" class="seg-btn {% if loop.first %}active{% endif %}"
+                            data-kom="{{ k }}" onclick="selectKom('{{ k }}')">
+                        <i class="dot dot-{{ k | lower }}"></i>{{ k }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div>
+                <div class="seg-label">Tahun</div>
+                <div class="seg" id="tahunSelector" role="group" aria-label="Pilih tahun">
+                    {% for y in years %}
+                    <button type="button" class="seg-btn {% if loop.last %}active{% endif %}"
+                            data-tahun="{{ y }}" onclick="selectTahun({{ y }})">{{ y }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="picker-hint">Pilihan berlaku untuk bagian detail dan perubahan cluster.</div>
+        </div>
+    </div>
+
+    <!-- ── DETAIL ───────────────────────────────────────── -->
+    <div class="col-xl-7">
+        <section class="panel h-100">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Peta cluster</h2>
+                    <p class="panel-sub js-label">—</p>
+                </div>
+            </div>
+            <div class="peta-box">
+                <div class="peta-placeholder" id="petaPlaceholder">
+                    <i class="ph ph-map-trifold"></i><span>Memuat peta…</span>
+                </div>
+                <img id="petaImg" src="" alt="Peta cluster kecamatan" style="display:none;">
+            </div>
+            <div class="d-flex flex-wrap mt-3" style="font-size:0.84rem;gap:8px 20px;">
+                <span class="c-pill"><i class="dot dot-rendah"></i>Rendah</span>
+                <span class="c-pill"><i class="dot dot-sedang"></i>Sedang</span>
+                <span class="c-pill"><i class="dot dot-tinggi"></i>Tinggi</span>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-5">
+        <section class="panel h-100">
+            <h2 class="panel-title">Evaluasi</h2>
+            <p class="panel-sub js-label mb-3">—</p>
+
+            <div class="metric-grid">
+                <div><span>Silhouette Score</span><strong id="mSil">—</strong><em id="mSilQ"></em></div>
+                <div><span>Davies-Bouldin Index</span><strong id="mDbi">—</strong><em id="mDbiQ"></em></div>
+                <div><span>Iterasi hingga konvergen</span><strong id="mIter">—</strong></div>
+                <div><span>Inertia</span><strong id="mInertia">—</strong></div>
+            </div>
+
+            <h3 class="sub-title">Pusat cluster (rata-rata anggota)</h3>
+            <table class="mini-table">
+                <thead>
+                    <tr><th>Cluster</th><th>Kecamatan</th><th>Produksi (ton)</th><th>Produktivitas (kg/ha)</th></tr>
+                </thead>
+                <tbody id="centroidBody"><tr><td colspan="4">—</td></tr></tbody>
+            </table>
+            <p class="note">Cluster diberi label Rendah, Sedang, dan Tinggi berdasarkan urutan rata-rata produksinya.</p>
+        </section>
+    </div>
+
+    <div class="col-12">
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Hasil per kecamatan</h2>
+                    <p class="panel-sub js-label">—</p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table data-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Kecamatan</th>
+                            <th>Produksi (ton)</th>
+                            <th>Produktivitas (kg/ha)</th>
+                            <th>Cluster</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailBody">
+                        <tr><td colspan="5">Memuat data…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="note">Diurutkan dari cluster Tinggi ke Rendah, lalu dari produksi terbesar.</p>
+        </section>
+    </div>
+
+    <!-- ── PERUBAHAN CLUSTER ────────────────────────────── -->
+    <div class="col-12">
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Perubahan cluster {{ years[0] }}–{{ years[-1] }}</h2>
+                    <p class="panel-sub" id="matrixLabel">—</p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="matrix">
+                    <thead>
+                        <tr>
+                            <th>Kecamatan</th>
+                            {% for y in years %}<th>{{ y }}</th>{% endfor %}
+                            <th>Berubah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matrixBody"></tbody>
+                </table>
+            </div>
+            <p class="note">Kolom "Berubah" menghitung berapa kali kategori kecamatan berganti dari satu tahun ke tahun berikutnya.</p>
+        </section>
+    </div>
+
+    <!-- ── TREN EVALUASI ────────────────────────────────── -->
+    <div class="col-12">
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Bagaimana kualitas clustering berubah tiap tahun?</h2>
+                    <p class="panel-sub">Silhouette makin tinggi makin baik, DBI makin rendah makin baik.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-6"><div id="chartSil" role="img" aria-label="Grafik Silhouette Score per tahun"></div></div>
+                <div class="col-lg-6"><div id="chartDbi" role="img" aria-label="Grafik DBI per tahun"></div></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ── RINGKASAN ────────────────────────────────────── -->
+    <div class="col-12">
+        <h2 class="panel-title mb-3">Ringkasan per komoditas</h2>
+        <div class="row g-3" id="summaryCards"></div>
+        <p class="note">Ringkasan dihitung otomatis dari hasil clustering {{ years[0] }}–{{ years[-1] }}.</p>
+    </div>
+
+    {% endif %}
+</div>
+
+{% if summary %}
+<script>
+const SUMMARY   = {{ summary | tojson }};
+const KOMODITAS = {{ komoditas_list | tojson }};
+const YEARS     = {{ years | tojson }};
+const NAMES     = { 1: 'Rendah', 2: 'Sedang', 3: 'Tinggi' };
+const DOT       = { 1: 'dot-rendah', 2: 'dot-sedang', 3: 'dot-tinggi' };
+const KOM_COLOR = { Karet: '#1B4332', Kelapa: '#B45309', Pinang: '#0F766E' };
+
+let kom   = KOMODITAS[0];
+let tahun = YEARS[YEARS.length - 1];
+
+const fmt = (v, d = 2) => (v === null || v === undefined || isNaN(v)) ? '—'
+    : Number(v).toLocaleString('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+function data(k, y) { return (SUMMARY[k] || {})[String(y)]; }
+
+function selectKom(k) {
+    kom = k;
+    document.querySelectorAll('#komSelector .seg-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.kom === k));
+    render();
+}
+
+function selectTahun(y) {
+    tahun = y;
+    document.querySelectorAll('#tahunSelector .seg-btn').forEach(b =>
+        b.classList.toggle('active', parseInt(b.dataset.tahun) === y));
+    render();
+}
+
+function render() {
+    document.querySelectorAll('.js-label').forEach(el => el.textContent = `${kom} · ${tahun}`);
+    renderPeta();
+    renderDetail();
+    renderMatrix();
+}
+
+function petaMessage(icon, text) {
+    const ph = document.getElementById('petaPlaceholder');
+    ph.style.display = 'flex';
+    ph.innerHTML = `<i class="ph ${icon}"></i><span>${text}</span>`;
+}
+
+function renderPeta() {
+    const img = document.getElementById('petaImg');
+    img.style.display = 'none';
+    petaMessage('ph-map-trifold', 'Memuat peta…');
+    img.onload = () => {
+        document.getElementById('petaPlaceholder').style.display = 'none';
+        img.style.display = 'block';
+    };
+    img.onerror = () => petaMessage('ph-image-broken',
+        'Peta belum tersedia. Jalankan notebook <code>kmeans.ipynb</code> untuk membuatnya.');
+    img.src = `/static/images/maps/peta_${kom.toLowerCase()}_${tahun}.png`;
+}
+
+function renderDetail() {
+    const d     = data(kom, tahun);
+    const tbody = document.getElementById('detailBody');
+    if (!d) {
+        tbody.innerHTML = '<tr><td colspan="5">Data untuk pilihan ini belum tersedia.</td></tr>';
+        return;
+    }
+
+    document.getElementById('mSil').textContent     = d.silhouette_score;
+    document.getElementById('mDbi').textContent     = d.dbi_score;
+    document.getElementById('mIter').textContent    = d.n_iter;
+    document.getElementById('mInertia').textContent = d.inertia;
+    document.getElementById('mSilQ').textContent    = getSilKualitas(d.silhouette_score).label;
+    document.getElementById('mDbiQ').textContent    = getDbiKualitas(d.dbi_score).label;
+
+    const kec = d.kecamatan_data || [];
+
+    // Pusat cluster dalam satuan asli = rata-rata anggota cluster
+    document.getElementById('centroidBody').innerHTML = [3, 2, 1].map(c => {
+        const a = kec.filter(k => k.cluster === c);
+        const mean = key => a.length ? a.reduce((s, k) => s + k[key], 0) / a.length : NaN;
+        return `<tr>
+            <td><span class="c-pill"><i class="dot ${DOT[c]}"></i>${NAMES[c]}</span></td>
+            <td>${a.length}</td>
+            <td>${fmt(mean('Produksi_Ton'))}</td>
+            <td>${fmt(mean('Produktivitas'))}</td>
+        </tr>`;
+    }).join('');
+
+    tbody.innerHTML = [...kec]
+        .sort((a, b) => b.cluster - a.cluster || b.Produksi_Ton - a.Produksi_Ton)
+        .map((k, i) => `<tr>
+            <td>${i + 1}</td>
+            <td><strong>${k.kecamatan}</strong></td>
+            <td>${fmt(k.Produksi_Ton)}</td>
+            <td>${fmt(k.Produktivitas)}</td>
+            <td><span class="c-pill"><i class="dot ${DOT[k.cluster]}"></i>${NAMES[k.cluster]}</span></td>
+        </tr>`).join('');
+}
+
+function renderMatrix() {
+    document.getElementById('matrixLabel').textContent = `${kom} · kategori tiap kecamatan per tahun`;
+
+    const perKec = {};
+    YEARS.forEach(y => (data(kom, y)?.kecamatan_data || []).forEach(k => {
+        (perKec[k.kecamatan] ||= {})[y] = k.cluster;
+    }));
+
+    const latest = YEARS[YEARS.length - 1];
+    const rows = Object.entries(perKec).sort((a, b) =>
+        (b[1][latest] || 0) - (a[1][latest] || 0) || a[0].localeCompare(b[0]));
+
+    document.getElementById('matrixBody').innerHTML = rows.map(([nama, th]) => {
+        let changes = 0;
+        YEARS.forEach((y, i) => { if (i && th[y] && th[YEARS[i - 1]] && th[y] !== th[YEARS[i - 1]]) changes++; });
+        const cells = YEARS.map(y => th[y]
+            ? `<td class="cell cell-${th[y]}${y === tahun ? ' cur' : ''}">${NAMES[th[y]]}</td>`
+            : '<td class="cell">—</td>').join('');
+        return `<tr><td class="kec">${nama}</td>${cells}
+                <td class="change">${changes ? changes + '×' : 'Tetap'}</td></tr>`;
+    }).join('');
+}
+
+function renderCharts() {
+    if (typeof ApexCharts === 'undefined') return;
+
+    const series = key => KOMODITAS.map(k => ({
+        name: k,
+        data: YEARS.map(y => data(k, y)?.[key] ?? null),
+    }));
+
+    const base = (title, key) => ({
+        chart: { type: 'line', height: 280, toolbar: { show: false }, fontFamily: 'DM Sans, sans-serif',
+                 animations: { enabled: false } },
+        series: series(key),
+        colors: KOMODITAS.map(k => KOM_COLOR[k] || '#6B7280'),
+        stroke: { width: 2.5, curve: 'straight' },
+        markers: { size: 4, strokeWidth: 0 },
+        xaxis: { categories: YEARS, axisBorder: { color: '#E5E7EB' }, axisTicks: { show: false } },
+        yaxis: { min: 0, max: 1, tickAmount: 5, labels: { formatter: v => v.toFixed(1) } },
+        grid: { borderColor: '#EEF0F2', strokeDashArray: 0 },
+        legend: { position: 'top', horizontalAlign: 'left', fontSize: '13px',
+                  markers: { width: 10, height: 10, radius: 10 } },
+        title: { text: title, style: { fontSize: '14px', fontWeight: 700, color: '#1A1A2E' } },
+        tooltip: { y: { formatter: v => v === null ? '—' : v.toFixed(4) } },
+    });
+
+    new ApexCharts(document.getElementById('chartSil'), base('Silhouette Score', 'silhouette_score')).render();
+    new ApexCharts(document.getElementById('chartDbi'), base('Davies-Bouldin Index', 'dbi_score')).render();
+}
+
+function renderSummary() {
+    document.getElementById('summaryCards').innerHTML = KOMODITAS.map(k => {
+        const per = YEARS.map(y => ({ y, d: data(k, y) })).filter(o => o.d);
+        if (!per.length) return '';
+
+        const best    = per.reduce((a, b) => b.d.dbi_score < a.d.dbi_score ? b : a);
+        const avgSil  = per.reduce((s, o) => s + o.d.silhouette_score, 0) / per.length;
+        const avgDbi  = per.reduce((s, o) => s + o.d.dbi_score, 0) / per.length;
+
+        // Kecamatan yang paling sering masuk cluster Tinggi
+        const tinggi = {};
+        per.forEach(o => (o.d.kecamatan_data || []).forEach(kc => {
+            if (kc.cluster === 3) tinggi[kc.kecamatan] = (tinggi[kc.kecamatan] || 0) + 1;
+        }));
+        const konsisten = Object.entries(tinggi).filter(([, n]) => n === per.length).map(([n]) => n);
+        const top = Object.entries(tinggi).sort((a, b) => b[1] - a[1]).slice(0, 3)
+                          .map(([n, c]) => `${n} (${c}×)`);
+
+        return `<div class="col-lg-4"><article class="sum-card">
+            <div class="sum-head"><i class="dot dot-${k.toLowerCase()}"></i><h3>${k}</h3></div>
+            <ul class="sum-list">
+                <li>Tahun dengan cluster terbaik: <strong>${best.y}</strong>
+                    (DBI ${fmt(best.d.dbi_score, 4)}, Silhouette ${fmt(best.d.silhouette_score, 4)})</li>
+                <li>Rata-rata ${per.length} tahun: Silhouette <strong>${fmt(avgSil, 4)}</strong>,
+                    DBI <strong>${fmt(avgDbi, 4)}</strong></li>
+                <li>${konsisten.length
+                    ? `Selalu masuk cluster Tinggi: <strong>${konsisten.join(', ')}</strong>`
+                    : `Paling sering masuk cluster Tinggi: <strong>${top.join(', ') || '—'}</strong>`}</li>
+            </ul>
+        </article></div>`;
+    }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    render();
+    renderCharts();
+    renderSummary();
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+@startuml
+!include _style.iuml
+autonumber
+actor Admin
+participant "Halaman Dataset" as UI
+participant "Flask\n/dataset" as F
+database "perkebunan_bireuen\n_original.csv" as CSV
+Admin -> UI : Klik menu Dataset
+UI -> F : GET /dataset
+F -> F : Cek session login
+F -> CSV : Baca file (pandas)
+CSV --> F : 255 baris data
+F --> UI : render_template(dataset)
+UI -> UI : Inisialisasi tabel DataTables
+UI --> Admin : Tampilkan tabel, filter komoditas, pencarian
+opt Download dataset
+  Admin -> UI : Klik Download CSV
+  UI -> F : GET /dataset/download
+  F -> CSV : Ambil file
+  F --> Admin : File perkebunan_bireuen.csv
+end
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+!include _style.iuml
+autonumber
+actor Admin
+participant "Halaman\nManajemen User" as UI
+participant "Flask\n/users" as F
+collections "Data pengguna\n(memori aplikasi)" as U
+Admin -> UI : Klik menu Manajemen User
+UI -> F : GET /users
+F -> U : Ambil daftar pengguna
+U --> F : Daftar pengguna
+F --> UI : Tampilkan tabel pengguna
+alt Tambah pengguna
+  Admin -> UI : Isi form tambah
+  UI -> F : POST /users/add
+  F -> U : Simpan pengguna baru
+else Ubah pengguna
+  Admin -> UI : Isi form edit
+  UI -> F : POST /users/update
+  F -> U : Perbarui data pengguna
+else Hapus pengguna
+  Admin -> UI : Klik Hapus & konfirmasi
+  UI -> F : POST /users/delete
+  F -> U : Hapus pengguna
+end
+F --> UI : Redirect ke /users + pesan berhasil/gagal
+UI --> Admin : Tampilkan tabel terbaru
+@enduml

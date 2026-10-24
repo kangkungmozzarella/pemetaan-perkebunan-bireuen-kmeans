@@ -1,0 +1,33 @@
+@startuml
+!include _style.iuml
+!pragma layout smetana
+left to right direction
+skinparam packageStyle rectangle
+actor "Pengunjung" as P
+actor "Admin" as A
+rectangle "Sistem Pemetaan Geospasial Perkebunan Bireuen" {
+  usecase "Melihat beranda\ndan peta cluster" as UC1
+  usecase "Melihat halaman\ntentang" as UC7
+  usecase "Login" as UC2
+  usecase "Melihat dashboard" as UC3
+  usecase "Melihat dataset" as UC4
+  usecase "Download dataset\n(CSV)" as UC5
+  usecase "Melihat hasil\nanalisis K-Means" as UC6
+  usecase "Mengelola pengguna\n(tambah, ubah, hapus)" as UC8
+  usecase "Logout" as UC9
+}
+P --> UC1
+P --> UC7
+A --> UC2
+A --> UC3
+A --> UC4
+A --> UC6
+A --> UC8
+A --> UC9
+UC5 .> UC4 : <<extend>>
+note right of UC2
+  Dashboard, dataset, hasil analisis,
+  manajemen pengguna, dan logout
+  hanya dapat diakses setelah login.
+end note
+@enduml

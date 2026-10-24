@@ -1,0 +1,30 @@
+@startuml
+!include _style.iuml
+|Admin|
+start
+:Klik menu Manajemen User;
+|Sistem|
+:Tampilkan tabel pengguna;
+|Admin|
+:Pilih aksi tambah, ubah, atau hapus\nlalu isi formulir / konfirmasi;
+|Sistem|
+switch (Aksi yang dipilih?)
+case (Tambah)
+  if (Username sudah ada?) then (ya)
+    :Tampilkan pesan gagal;
+  else (tidak)
+    :Simpan pengguna baru;
+  endif
+case (Ubah)
+  :Perbarui data pengguna;
+case (Hapus)
+  if (Akun yang sedang login?) then (ya)
+    :Tolak penghapusan;
+  else (tidak)
+    :Hapus pengguna;
+  endif
+endswitch
+:Tampilkan tabel terbaru dan pesan;
+|Admin|
+stop
+@enduml
